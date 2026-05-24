@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-serif), Georgia, "Times New Roman", serif;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }
@@ -21,6 +26,29 @@ body {
     min-height: 44px;
     min-width: 44px;
   }
+
+  .font-sans {
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .font-serif {
+    font-family: var(--font-serif), Georgia, serif;
+  }
+
+  .academy-page {
+    background-color: #09090b;
+    background-image: radial-gradient(
+      ellipse 70% 45% at 50% -10%,
+      rgba(16, 185, 129, 0.12),
+      transparent 55%
+    );
+  }
+
+  .academy-rule {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.35), transparent);
+  }
+
   .home-mesh {
     background-color: #09090b;
     background-image:
@@ -66,4 +94,13 @@ select {
 select option {
   background-color: #27272a;
   color: #fafafa;
+}
+
+input[type="time"],
+input[type="date"] {
+  color-scheme: dark;
+}
+
+input.time-input {
+  min-height: 48px;
 }

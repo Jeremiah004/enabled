@@ -2,24 +2,21 @@ export type SessionTimestampsResult =
   | { ok: true; start_time: string; end_time: string; durationHours: number }
   | { ok: false; error: string };
 
-export type Time12Parts = {
-  hour: string;
-  minute: string;
-  period: 'AM' | 'PM';
-};
-
-/** Five-minute steps — works with quick-length presets (1h, 1.5h, 2h) */
-const MINUTE_OPTIONS = Array.from({ length: 12 }, (_, i) =>
-  String(i * 5).padStart(2, '0')
-) as readonly string[];
-
 /** Normalize to 24h "HH:MM" — accepts "09:00", "09:00:00", or "5:30 PM" */
 export function normalizeTimeInput(time: string): string | null {
   const trimmed = time.trim();
 
   const twelveHour = trimmed.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)$/i);
   if (twelveHour) {
-    return time12To24(twelveHour[1], twelveHour[2], twelveHour[3].toUpperCase() as 'AM' | 'PM');
+    const h12 = parseInt(twelveHour[1], 10);
+    const m = parseInt(twelveHour[2], 10);
+    const period = twelveHour[3].toUpperCase();
+    if (Number.isNaN(h12) || Number.isNaN(m) || h12 < 1 || h12 > 12 || m < 0 || m > 59) {
+      return null;
+    }
+    let h24 = h12 % 12;
+    if (period === 'PM') h24 += 12;
+    return `${String(h24).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   }
 
   const twentyFour = trimmed.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
@@ -28,38 +25,6 @@ export function normalizeTimeInput(time: string): string | null {
   const minutes = Math.min(59, Math.max(0, parseInt(twentyFour[2], 10)));
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
-
-/** Convert 12-hour clock to 24-hour "HH:MM" for storage */
-export function time12To24(
-  hour12: string,
-  minute: string,
-  period: 'AM' | 'PM'
-): string | null {
-  const h12 = parseInt(hour12, 10);
-  const m = parseInt(minute, 10);
-  if (Number.isNaN(h12) || Number.isNaN(m) || h12 < 1 || h12 > 12 || m < 0 || m > 59) {
-    return null;
-  }
-  let h24 = h12 % 12;
-  if (period === 'PM') h24 += 12;
-  return `${String(h24).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-}
-
-/** Convert 24-hour "HH:MM" to 12-hour parts for dropdowns */
-export function time24To12(time24: string): Time12Parts | null {
-  const normalized = normalizeTimeInput(time24);
-  if (!normalized) return null;
-  const [h24, m] = normalized.split(':').map((n) => parseInt(n, 10));
-  const period: 'AM' | 'PM' = h24 >= 12 ? 'PM' : 'AM';
-  const hour12 = h24 % 12 === 0 ? 12 : h24 % 12;
-  return {
-    hour: String(hour12),
-    minute: String(m).padStart(2, '0'),
-    period,
-  };
-}
-
-export { MINUTE_OPTIONS };
 
 /** Parse YYYY-MM-DD + HH:MM as local wall-clock time (no timezone string bugs). */
 export function parseLocalSessionDateTime(sessionDate: string, time: string): Date | null {
@@ -130,7 +95,7 @@ export function previewSessionDuration(
   endTime: string
 ): { valid: true; hours: number; label: string } | { valid: false; message: string } {
   if (!sessionDate || !startTime || !endTime) {
-    return { valid: false, message: 'Choose hour, minute, and AM/PM for both start and end.' };
+    return { valid: false, message: 'Select start and end times.' };
   }
 
   const result = validateAndBuildSessionTimestamps(sessionDate, startTime, endTime);

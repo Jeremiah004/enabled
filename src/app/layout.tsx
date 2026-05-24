@@ -1,9 +1,24 @@
 import type { Metadata, Viewport } from 'next';
+import { DM_Sans, Instrument_Serif } from 'next/font/google';
 import './globals.css';
+
+const fontSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
+const fontSerif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-serif',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Enabled Multi Concept — Staff Portal',
-  description: 'Tutor management and session logging for Enabled Multi Concept academy.',
+  description:
+    'Operational excellence for Enabled Multi Concept — session auditing, payroll governance, and staff administration.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -29,8 +44,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={`${fontSans.variable} ${fontSerif.variable}`}>
+      <body className="font-sans antialiased">{children}</body>
     </html>
   );
 }

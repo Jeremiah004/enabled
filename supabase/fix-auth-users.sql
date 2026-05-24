@@ -7,7 +7,7 @@ select
   u.id,
   u.email,
   coalesce(u.raw_user_meta_data->>'full_name', split_part(u.email, '@', 1)),
-  'tutor'
+  'TUTOR'
 from auth.users u
 left join public.profiles p on p.id = u.id
 where p.id is null;

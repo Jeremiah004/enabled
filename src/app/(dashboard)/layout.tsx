@@ -7,7 +7,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!session) redirect('/login');
 
   const { user, profile } = session;
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'ADMIN';
   const displayName = profile?.full_name || user.email || 'User';
   const initials = displayName
     .split(' ')

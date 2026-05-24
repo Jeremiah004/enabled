@@ -9,7 +9,6 @@ import { addMinutesToTime, previewSessionDuration } from '@/lib/sessions';
 
 const logSessionInitialState: LogSessionState = { error: null, success: false };
 import { SUBJECT_SUGGESTIONS } from '@/data/subjects';
-import TimePicker12h from '@/app/components/TimePicker12h';
 
 type Student = { id: string; full_name: string };
 
@@ -145,22 +144,38 @@ export default function SessionLogForm({ students }: { students: Student[] }) {
 
         <div className="rounded-xl border border-zinc-800 bg-zinc-800/30 p-4 space-y-4">
           <p className="text-xs font-medium text-zinc-400">
-            Class time — pick hour, minute, then AM or PM for each
+            Class time — use your device clock for start and end
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <TimePicker12h
-              label="Start time"
-              name="start_time"
-              value24={startTime}
-              onChange24={setStartTime}
-            />
-            <TimePicker12h
-              label="End time"
-              name="end_time"
-              value24={endTime}
-              onChange24={setEndTime}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="start_time" className={labelClass}>
+                Start time
+              </label>
+              <input
+                id="start_time"
+                name="start_time"
+                type="time"
+                required
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className={`${inputClass} time-input`}
+              />
+            </div>
+            <div>
+              <label htmlFor="end_time" className={labelClass}>
+                End time
+              </label>
+              <input
+                id="end_time"
+                name="end_time"
+                type="time"
+                required
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className={`${inputClass} time-input`}
+              />
+            </div>
           </div>
 
           <div>

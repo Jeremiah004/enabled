@@ -2,24 +2,33 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { User } from '@supabase/supabase-js';
+import {
+  getDashboardPath,
+  normalizeRole,
+  type StaffRole,
+  type UserRole,
+} from '@/lib/roles';
 
-export type StaffRole = 'admin' | 'tutor';
+export type { UserRole, StaffRole };
+export { getDashboardPath, normalizeRole };
 
 export type Profile = {
-  role: StaffRole | null;
+  role: UserRole | null;
   full_name: string | null;
+  email?: string | null;
+  bank_name?: string | null;
+  account_number?: string | null;
+  account_name?: string | null;
 };
 
 export type SessionUser = {
   user: User;
   profile: Profile | null;
-  role: StaffRole | null;
+  role: UserRole | null;
 };
 
-export function getDashboardPath(role: StaffRole | null | undefined): string {
-  if (role === 'admin') return '/admin';
-  if (role === 'tutor') return '/tutor';
-  return '/login';
+export function isStaffRole(role: UserRole | null | undefined): role is StaffRole {
+  return role === 'ADMIN' || role === 'TUTOR';
 }
 
 export async function getSessionUser(): Promise<SessionUser | null> {
@@ -33,24 +42,30 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, full_name')
+    .select('role, full_name, email, bank_name, account_number, account_name')
     .eq('id', user.id)
     .maybeSingle();
 
-  const role: StaffRole | null =
-    profile?.role === 'admin' || profile?.role === 'tutor' ? profile.role : null;
+  const role = normalizeRole(profile?.role ?? null);
 
   return {
     user,
     profile: profile
-      ? { role, full_name: profile.full_name ?? null }
+      ? {
+          role,
+          full_name: profile.full_name ?? null,
+          email: profile.email ?? null,
+          bank_name: profile.bank_name ?? null,
+          account_number: profile.account_number ?? null,
+          account_name: profile.account_name ?? null,
+        }
       : null,
     role,
   };
 }
 
 /** Redirects to login if unauthenticated, or to the user's dashboard if role is not allowed. */
-export async function requireRole(allowed: StaffRole[]): Promise<SessionUser> {
+export async function requireRole(allowed: UserRole[]): Promise<SessionUser> {
   const session = await getSessionUser();
   if (!session) redirect('/login');
   if (!session.role || !allowed.includes(session.role)) {
@@ -89,7 +104,7 @@ export async function ensureProfile(
     id: user.id,
     full_name: name,
     email: user.email,
-    role: 'tutor',
+    role: 'TUTOR',
   });
 
   if (error) {
@@ -100,18 +115,18 @@ export async function ensureProfile(
   return { ok: true };
 }
 
-/** Resolve staff role from profiles using the active Supabase client. */
+/** Resolve role from profiles using the active Supabase client. */
 export async function getProfileRole(
   supabase: SupabaseClient,
   userId: string
-): Promise<StaffRole | null> {
+): Promise<UserRole | null> {
   const { data: profile } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', userId)
     .maybeSingle();
 
-  return profile?.role === 'admin' || profile?.role === 'tutor' ? profile.role : null;
+  return normalizeRole(profile?.role ?? null);
 }
 
 /** After sign-in: ensure profile exists and return dashboard path. */
@@ -125,7 +140,7 @@ export async function completeSignIn(
     return {
       ok: false,
       error:
-        'Signed in, but your staff profile could not be created. Run supabase/setup-profiles.sql in the Supabase SQL Editor, then try again.',
+        'Signed in, but your staff profile could not be created. Run supabase/setup-profiles.sql and supabase/migrate-rbac-payout.sql in the Supabase SQL Editor, then try again.',
     };
   }
 
@@ -134,7 +149,7 @@ export async function completeSignIn(
     return {
       ok: false,
       error:
-        'Signed in, but no role is assigned. Run supabase/setup-profiles.sql, or set your role to tutor/admin in the profiles table.',
+        'Signed in, but no role is assigned. Run supabase/migrate-rbac-payout.sql, or set your role to ADMIN/TUTOR in the profiles table.',
     };
   }
 

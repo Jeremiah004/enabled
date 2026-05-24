@@ -10,7 +10,7 @@ export async function logSession(
   _prevState: LogSessionState,
   formData: FormData
 ): Promise<LogSessionState> {
-  const { user } = await requireRole(['tutor']);
+  const { user } = await requireRole(['TUTOR']);
   const supabase = await createClient();
 
   const studentId = formData.get('student_id') as string | null;

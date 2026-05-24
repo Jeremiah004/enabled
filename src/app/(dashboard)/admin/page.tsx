@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth';
+import { sendPaidSessionReceipt } from '@/lib/email';
 import { revalidatePath } from 'next/cache';
 import AdminSessionList from '@/app/components/AdminSessionList';
 
@@ -18,7 +19,7 @@ function calcPayout(subject: string, startTime: string, endTime: string): number
 }
 
 export default async function AdminDashboard() {
-  await requireRole(['admin']);
+  await requireRole(['ADMIN']);
   const supabase = await createClient();
 
   const [{ data: sessions }, { data: profiles }, { data: students }] = await Promise.all([
@@ -54,13 +55,69 @@ export default async function AdminDashboard() {
 
   const markAsPaidAction = async (formData: FormData) => {
     'use server';
-    await requireRole(['admin']);
+    await requireRole(['ADMIN']);
     const sessionId = formData.get('session_id') as string;
     const supabaseClient = await createClient();
-    await supabaseClient
+
+    const { data: session } = await supabaseClient
+      .from('sessions')
+      .select('id, subject, start_time, end_time, tutor_id, student_id')
+      .eq('id', sessionId)
+      .single();
+
+    const { error: updateError } = await supabaseClient
       .from('sessions')
       .update({ status: 'PAID' })
       .eq('id', sessionId);
+
+    if (updateError) {
+      console.error('[markAsPaid]', updateError.message);
+      revalidatePath('/admin');
+      return;
+    }
+
+    if (session) {
+      const [{ data: tutor }, { data: student }] = await Promise.all([
+        supabaseClient
+          .from('profiles')
+          .select('email, full_name')
+          .eq('id', session.tutor_id)
+          .single(),
+        supabaseClient
+          .from('students')
+          .select('full_name')
+          .eq('id', session.student_id)
+          .single(),
+      ]);
+
+      const hrs =
+        Math.abs(
+          new Date(session.end_time).getTime() - new Date(session.start_time).getTime()
+        ) / 36e5;
+      const payout = calcPayout(session.subject, session.start_time, session.end_time);
+      const sessionDate = new Date(session.start_time).toLocaleDateString('en-NG', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+
+      const emailResult = await sendPaidSessionReceipt({
+        tutorEmail: tutor?.email ?? '',
+        tutorName: tutor?.full_name ?? 'Tutor',
+        sessionId: session.id,
+        subject: session.subject,
+        studentName: student?.full_name ?? '—',
+        sessionDate,
+        hours: hrs,
+        payoutAmountNgn: payout,
+      });
+
+      if (!emailResult.ok) {
+        console.error('[markAsPaid] receipt email failed:', emailResult.error);
+      }
+    }
+
     revalidatePath('/admin');
   };
 

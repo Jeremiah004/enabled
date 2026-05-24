@@ -18,7 +18,7 @@ export async function submitSession(
   _prevState: SessionFormState,
   formData: FormData
 ): Promise<SessionFormState> {
-  const { user } = await requireRole(['tutor']);
+  const { user } = await requireRole(['TUTOR']);
   const supabase = await createClient();
 
   // 2. Extract and validate form fields

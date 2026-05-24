@@ -3,11 +3,13 @@ import { requireRole } from '@/lib/auth';
 import { sessionDurationHours } from '@/lib/sessions';
 import SessionLogForm from '@/app/components/SessionLogForm';
 import TutorSessionHistory from '@/app/components/TutorSessionHistory';
+import TutorDashboardTabs from '@/app/components/TutorDashboardTabs';
+import PayoutSettingsForm from '@/app/components/PayoutSettingsForm';
 
 export const dynamic = 'force-dynamic';
 
 export default async function TutorDashboard() {
-  const { user, profile } = await requireRole(['tutor']);
+  const { user, profile } = await requireRole(['TUTOR']);
   const supabase = await createClient();
 
   const { data: students } = await supabase
@@ -31,30 +33,17 @@ export default async function TutorDashboard() {
 
   const rows = history ?? [];
   const totalSessions = rows.length;
-  const totalHours =
-    rows.reduce(
-      (acc, h) => acc + sessionDurationHours(h.start_time, h.end_time),
-      0
-    ) ?? 0;
+  const totalHours = rows.reduce(
+    (acc, h) => acc + sessionDurationHours(h.start_time, h.end_time),
+    0
+  );
   const unpaidSessions = rows.filter((h) => h.status === 'UNPAID').length;
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Tutor';
 
-  return (
-    <div className="space-y-6 sm:space-y-8">
-      <div>
-        <p className="text-emerald-400/90 text-xs font-semibold uppercase tracking-widest mb-1">
-          Tutor workspace
-        </p>
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">
-          Hello, {firstName}
-        </h1>
-        <p className="text-zinc-500 text-sm mt-1">
-          Log today&apos;s classes and track your hours below.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+  const sessionsPanel = (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
         <div className="rounded-2xl border border-zinc-800 bg-gradient-to-br from-zinc-900 to-zinc-900/50 p-4 sm:p-5 card-glow">
           <p className="text-xs font-medium text-zinc-500">Total sessions</p>
           <p className="text-2xl sm:text-3xl font-bold text-white mt-1.5 sm:mt-2 tabular-nums">
@@ -67,7 +56,7 @@ export default async function TutorDashboard() {
             {totalHours.toFixed(1)}
           </p>
         </div>
-        <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-950/30 to-zinc-900/50 p-4 sm:p-5 card-glow sm:col-span-1 col-span-1">
+        <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-950/30 to-zinc-900/50 p-4 sm:p-5 card-glow">
           <p className="text-xs font-medium text-amber-400/80">Awaiting payment</p>
           <p className="text-2xl sm:text-3xl font-bold text-amber-300 mt-1.5 sm:mt-2 tabular-nums">
             {unpaidSessions}
@@ -98,6 +87,34 @@ export default async function TutorDashboard() {
           />
         </div>
       </div>
+    </>
+  );
+
+  const payoutPanel = (
+    <PayoutSettingsForm
+      initial={{
+        bank_name: profile?.bank_name ?? null,
+        account_number: profile?.account_number ?? null,
+        account_name: profile?.account_name ?? null,
+      }}
+    />
+  );
+
+  return (
+    <div className="space-y-6 sm:space-y-8">
+      <div>
+        <p className="text-emerald-400/90 text-xs font-semibold uppercase tracking-widest mb-1">
+          Tutor workspace
+        </p>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">
+          Hello, {firstName}
+        </h1>
+        <p className="text-zinc-500 text-sm mt-1">
+          Log classes, review history, and manage payout details.
+        </p>
+      </div>
+
+      <TutorDashboardTabs sessionsPanel={sessionsPanel} payoutPanel={payoutPanel} />
     </div>
   );
 }
