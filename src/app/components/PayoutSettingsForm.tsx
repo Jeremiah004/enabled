@@ -8,9 +8,9 @@ import {
 } from '@/app/actions/updatePayoutDetails.types';
 
 const inputClass =
-  'w-full bg-zinc-800/80 border border-zinc-700/80 text-white text-base sm:text-sm rounded-xl px-3.5 py-3.5 sm:py-3 min-h-[48px] focus:outline-none focus:border-emerald-500/80 focus:ring-1 focus:ring-emerald-500/30 transition-all';
+  'w-full input-field text-base sm:text-sm rounded-xl px-3.5 py-3.5 sm:py-3 min-h-[48px] transition-all';
 
-const labelClass = 'block text-xs font-medium text-zinc-400 mb-1.5';
+const labelClass = 'block text-xs font-medium text-muted mb-1.5';
 
 function SaveButton() {
   const { pending } = useFormStatus();
@@ -18,7 +18,7 @@ function SaveButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-zinc-950 font-semibold text-sm px-8 py-3 rounded-xl min-h-[48px] transition-all"
+      className="w-full sm:w-auto btn-primary disabled:opacity-50 font-semibold text-sm px-8 py-3 rounded-xl min-h-[48px] transition-all hover:opacity-90"
     >
       {pending ? 'Saving…' : 'Save payout details'}
     </button>
@@ -45,9 +45,9 @@ export default function PayoutSettingsForm({
     Boolean(initial.account_name);
 
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6 md:p-7 card-glow max-w-lg">
-      <h2 className="text-lg font-semibold text-white">Payout settings</h2>
-      <p className="text-zinc-500 text-sm mt-1 leading-relaxed">
+    <div className="rounded-2xl border border-default bg-elevated p-4 sm:p-6 md:p-7 card-glow max-w-lg">
+      <h2 className="text-lg font-semibold text-primary">Payout settings</h2>
+      <p className="text-muted text-sm mt-1 leading-relaxed">
         Required before Paystack bulk payouts are enabled. Your admin uses these details
         to transfer session earnings.
       </p>
@@ -60,13 +60,13 @@ export default function PayoutSettingsForm({
 
       <form action={formAction} className="mt-6 space-y-5">
         {state.error && (
-          <div className="rounded-xl bg-red-950/50 border border-red-800/40 px-4 py-3">
-            <p className="text-sm text-red-200">{state.error}</p>
+          <div className="rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800/40 px-4 py-3">
+            <p className="text-sm text-red-800 dark:text-red-200">{state.error}</p>
           </div>
         )}
         {state.success && (
-          <div className="rounded-xl bg-emerald-950/50 border border-emerald-800/40 px-4 py-3">
-            <p className="text-sm text-emerald-200 font-medium">Payout details saved.</p>
+          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/40 px-4 py-3">
+            <p className="text-sm text-emerald-800 dark:text-emerald-200 font-medium">Payout details saved.</p>
           </div>
         )}
 

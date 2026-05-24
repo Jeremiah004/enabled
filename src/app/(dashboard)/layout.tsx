@@ -1,6 +1,7 @@
 import { getSessionUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import DashboardShell from '@/app/components/DashboardShell';
+import AnnouncementBanner from '@/components/AnnouncementBanner';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getSessionUser();
@@ -18,6 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <DashboardShell
+      topBanner={<AnnouncementBanner />}
       isAdmin={isAdmin}
       displayName={displayName}
       initials={initials}

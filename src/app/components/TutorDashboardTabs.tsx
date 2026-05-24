@@ -16,7 +16,7 @@ export default function TutorDashboardTabs({
   return (
     <div>
       <div
-        className="flex gap-1 p-1 rounded-xl bg-zinc-900 border border-zinc-800 mb-6"
+        className="flex gap-1 p-1 rounded-xl bg-elevated border border-default mb-6"
         role="tablist"
         aria-label="Tutor dashboard sections"
       >
@@ -27,8 +27,8 @@ export default function TutorDashboardTabs({
           onClick={() => setTab('sessions')}
           className={`flex-1 min-h-[44px] text-sm font-medium rounded-lg transition-colors ${
             tab === 'sessions'
-              ? 'bg-emerald-500 text-zinc-950'
-              : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+              ? 'btn-primary text-white'
+              : 'text-muted hover:text-primary hover:bg-muted'
           }`}
         >
           Sessions
@@ -40,8 +40,8 @@ export default function TutorDashboardTabs({
           onClick={() => setTab('payout')}
           className={`flex-1 min-h-[44px] text-sm font-medium rounded-lg transition-colors ${
             tab === 'payout'
-              ? 'bg-emerald-500 text-zinc-950'
-              : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+              ? 'btn-primary text-white'
+              : 'text-muted hover:text-primary hover:bg-muted'
           }`}
         >
           Payout settings

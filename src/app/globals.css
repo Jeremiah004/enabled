@@ -5,12 +5,68 @@
   --font-serif: var(--font-serif), Georgia, "Times New Roman", serif;
 }
 
+:root {
+  --bg-page: #faf8f5;
+  --bg-elevated: #ffffff;
+  --bg-muted: #f0ebe3;
+  --bg-sidebar: #ffffff;
+  --text-primary: #1c1024;
+  --text-muted: #6b5f75;
+  --text-subtle: #9a8fa3;
+  --border: #e8e0d6;
+  --border-strong: #d4c9bc;
+  --accent: #e85d2c;
+  --accent-hover: #d14f22;
+  --accent-muted: #7c3aed;
+  --accent-subtle: rgba(232, 93, 44, 0.12);
+  --logo-surface: #faf8f5;
+  --nav-active-bg: rgba(232, 93, 44, 0.1);
+  --nav-active-text: #c44a1a;
+  --nav-active-border: rgba(232, 93, 44, 0.25);
+  --success: #059669;
+  --success-bg: rgba(5, 150, 105, 0.1);
+  --mesh-accent: rgba(124, 58, 237, 0.08);
+  --grid-line: rgba(28, 16, 36, 0.06);
+  --card-shadow: 0 4px 24px rgba(28, 16, 36, 0.08);
+  --card-shadow-hover: 0 8px 32px rgba(28, 16, 36, 0.12);
+  color-scheme: light;
+}
+
+.dark {
+  --bg-page: #09090b;
+  --bg-elevated: #18181b;
+  --bg-muted: #27272a;
+  --bg-sidebar: #18181b;
+  --text-primary: #fafafa;
+  --text-muted: #a1a1aa;
+  --text-subtle: #71717a;
+  --border: #3f3f46;
+  --border-strong: #52525b;
+  --accent: #e85d2c;
+  --accent-hover: #f07040;
+  --accent-muted: #a78bfa;
+  --accent-subtle: rgba(232, 93, 44, 0.15);
+  --logo-surface: #faf8f5;
+  --nav-active-bg: rgba(232, 93, 44, 0.12);
+  --nav-active-text: #f07040;
+  --nav-active-border: rgba(232, 93, 44, 0.3);
+  --success: #34d399;
+  --success-bg: rgba(52, 211, 153, 0.12);
+  --mesh-accent: rgba(124, 58, 237, 0.15);
+  --grid-line: rgba(255, 255, 255, 0.03);
+  --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --card-shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   overflow-x: hidden;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
 }
 
 @layer utilities {
@@ -35,37 +91,77 @@ body {
     font-family: var(--font-serif), Georgia, serif;
   }
 
+  .bg-page {
+    background-color: var(--bg-page);
+  }
+
+  .bg-elevated {
+    background-color: var(--bg-elevated);
+  }
+
+  .bg-muted {
+    background-color: var(--bg-muted);
+  }
+
+  .bg-sidebar {
+    background-color: var(--bg-sidebar);
+  }
+
+  .text-primary {
+    color: var(--text-primary);
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+  }
+
+  .text-subtle {
+    color: var(--text-subtle);
+  }
+
+  .border-default {
+    border-color: var(--border);
+  }
+
+  .text-accent {
+    color: var(--accent);
+  }
+
+  .bg-accent {
+    background-color: var(--accent);
+  }
+
   .academy-page {
-    background-color: #09090b;
+    background-color: var(--bg-page);
     background-image: radial-gradient(
       ellipse 70% 45% at 50% -10%,
-      rgba(16, 185, 129, 0.12),
+      var(--mesh-accent),
       transparent 55%
     );
   }
 
   .academy-rule {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.35), transparent);
+    background: linear-gradient(90deg, transparent, var(--accent-subtle), transparent);
   }
 
   .home-mesh {
-    background-color: #09090b;
+    background-color: var(--bg-page);
     background-image:
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.18), transparent),
-      radial-gradient(ellipse 60% 40% at 100% 0%, rgba(16, 185, 129, 0.08), transparent),
-      radial-gradient(ellipse 50% 30% at 0% 100%, rgba(39, 39, 42, 0.9), transparent);
+      radial-gradient(ellipse 80% 50% at 50% -20%, var(--mesh-accent), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 0%, var(--accent-subtle), transparent),
+      radial-gradient(ellipse 50% 30% at 0% 100%, var(--bg-muted), transparent);
   }
 
   .grid-bg {
     background-image:
-      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 48px 48px;
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 50%, #34d399 100%);
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-muted) 50%, var(--accent) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -73,32 +169,84 @@ body {
 
   .card-glow {
     box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.05),
-      0 4px 24px rgba(0, 0, 0, 0.4),
-      0 0 48px rgba(16, 185, 129, 0.06);
+      0 0 0 1px var(--border),
+      var(--card-shadow);
   }
 
   .card-glow:hover {
     box-shadow:
-      0 0 0 1px rgba(16, 185, 129, 0.2),
-      0 8px 32px rgba(0, 0, 0, 0.5),
-      0 0 64px rgba(16, 185, 129, 0.12);
+      0 0 0 1px var(--nav-active-border),
+      var(--card-shadow-hover);
+  }
+
+  .btn-primary {
+    background-color: var(--accent);
+    color: #ffffff;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--accent-hover);
+  }
+
+  .input-field {
+    background-color: var(--bg-muted);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+  }
+
+  .input-field::placeholder {
+    color: var(--text-subtle);
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-subtle);
+  }
+
+  .nav-link-active {
+    background-color: var(--nav-active-bg);
+    color: var(--nav-active-text);
+    border-color: var(--nav-active-border);
+  }
+
+  .nav-link-idle {
+    color: var(--text-muted);
+    border-color: transparent;
+  }
+
+  .nav-link-idle:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-muted);
+  }
+
+  .announcement-marquee-track {
+    animation: announcement-marquee 40s linear infinite;
+  }
+
+  .announcement-marquee-track:hover {
+    animation-play-state: paused;
   }
 }
 
-/* Readable time/date dropdowns on dark UI */
-select {
-  color-scheme: dark;
+@keyframes announcement-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+select,
+input[type="time"],
+input[type="date"] {
+  color-scheme: light dark;
 }
 
 select option {
-  background-color: #27272a;
-  color: #fafafa;
-}
-
-input[type="time"],
-input[type="date"] {
-  color-scheme: dark;
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 input.time-input {

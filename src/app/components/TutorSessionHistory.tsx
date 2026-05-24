@@ -54,9 +54,9 @@ export default function TutorSessionHistory({
   if (history.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 sm:py-16 px-4 text-center">
-        <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-4">
+        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
           <svg
-            className="w-6 h-6 text-zinc-600"
+            className="w-6 h-6 text-subtle"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -69,8 +69,8 @@ export default function TutorSessionHistory({
             />
           </svg>
         </div>
-        <p className="text-zinc-400 text-sm font-medium">No sessions yet</p>
-        <p className="text-zinc-600 text-xs mt-1 max-w-xs">
+        <p className="text-muted text-sm font-medium">No sessions yet</p>
+        <p className="text-subtle text-xs mt-1 max-w-xs">
           Your logged classes will show up here with date, time, and payment status.
         </p>
       </div>
@@ -80,20 +80,20 @@ export default function TutorSessionHistory({
   return (
     <>
       {/* Mobile: card list */}
-      <ul className="md:hidden divide-y divide-zinc-800/60 max-h-[min(70vh,520px)] overflow-y-auto">
+      <ul className="md:hidden divide-y divide-[var(--border)] max-h-[min(70vh,520px)] overflow-y-auto">
         {history.map((h) => (
           <li key={h.id} className="px-4 py-4 space-y-2">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-base font-semibold text-white truncate">
+                <p className="text-base font-semibold text-primary truncate">
                   {studentNames.get(h.student_id) ?? '—'}
                 </p>
-                <p className="text-sm text-zinc-400 mt-0.5">{h.subject}</p>
+                <p className="text-sm text-muted mt-0.5">{h.subject}</p>
               </div>
               <StatusBadge status={h.status} />
             </div>
-            <p className="text-xs text-zinc-500">{formatSessionDate(h.start_time)}</p>
-            <p className="text-xs text-zinc-400">{formatTimeRange(h.start_time, h.end_time)}</p>
+            <p className="text-xs text-subtle">{formatSessionDate(h.start_time)}</p>
+            <p className="text-xs text-muted">{formatTimeRange(h.start_time, h.end_time)}</p>
           </li>
         ))}
       </ul>
@@ -101,24 +101,24 @@ export default function TutorSessionHistory({
       {/* Desktop: table */}
       <div className="hidden md:block overflow-x-auto max-h-[520px] overflow-y-auto">
         <table className="w-full text-sm min-w-[560px]">
-          <thead className="sticky top-0 bg-zinc-900 z-10">
-            <tr className="border-b border-zinc-800 text-left text-[11px] text-zinc-500 uppercase tracking-wide">
+          <thead className="sticky top-0 bg-elevated z-10">
+            <tr className="border-b border-default text-left text-[11px] text-muted uppercase tracking-wide">
               <th className="px-4 lg:px-6 py-3 font-semibold">Student</th>
               <th className="px-4 py-3 font-semibold">Subject</th>
               <th className="px-4 py-3 font-semibold">When</th>
               <th className="px-4 lg:px-6 py-3 font-semibold">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/60">
+          <tbody className="divide-y divide-[var(--border)]">
             {history.map((h) => (
-              <tr key={h.id} className="hover:bg-zinc-800/30 transition-colors">
-                <td className="px-4 lg:px-6 py-4 text-white font-medium">
+              <tr key={h.id} className="hover:bg-muted/50 transition-colors">
+                <td className="px-4 lg:px-6 py-4 text-primary font-medium">
                   {studentNames.get(h.student_id) ?? '—'}
                 </td>
-                <td className="px-4 py-4 text-zinc-300">{h.subject}</td>
+                <td className="px-4 py-4 text-muted">{h.subject}</td>
                 <td className="px-4 py-4">
-                  <p className="text-zinc-400 text-xs">{formatSessionDate(h.start_time)}</p>
-                  <p className="text-zinc-500 text-[11px] mt-0.5">
+                  <p className="text-muted text-xs">{formatSessionDate(h.start_time)}</p>
+                  <p className="text-subtle text-[11px] mt-0.5">
                     {formatTimeRange(h.start_time, h.end_time)}
                   </p>
                 </td>
@@ -131,7 +131,7 @@ export default function TutorSessionHistory({
         </table>
       </div>
 
-      <p className="md:hidden px-4 py-3 text-xs text-zinc-600 border-t border-zinc-800/60 tabular-nums">
+      <p className="md:hidden px-4 py-3 text-xs text-subtle border-t border-default tabular-nums">
         {totalSessions} session{totalSessions === 1 ? '' : 's'} total
       </p>
     </>

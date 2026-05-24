@@ -127,37 +127,37 @@ export default async function AdminDashboard() {
   return (
     <div className="space-y-6 sm:space-y-7">
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-bold text-primary tracking-tight">
           Payroll dashboard
         </h1>
-        <p className="text-zinc-500 text-sm mt-1">
+        <p className="text-muted text-sm mt-1">
           Review all logged sessions and manage tutor payments.
         </p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 sm:p-5">
-          <p className="text-[10px] sm:text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">
+        <div className="bg-elevated border border-default rounded-xl p-4 sm:p-5">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-muted uppercase tracking-widest">
             Total sessions
           </p>
-          <p className="text-2xl sm:text-3xl font-bold text-white mt-1 tabular-nums">{totalSessions}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-primary mt-1 tabular-nums">{totalSessions}</p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 sm:p-5">
-          <p className="text-[10px] sm:text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">
+        <div className="bg-elevated border border-default rounded-xl p-4 sm:p-5">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-muted uppercase tracking-widest">
             Unpaid
           </p>
           <p className="text-2xl sm:text-3xl font-bold text-amber-400 mt-1 tabular-nums">{unpaidCount}</p>
         </div>
-        <div className="bg-zinc-900 border border-amber-500/20 rounded-xl p-4 sm:p-5 col-span-2 lg:col-span-1">
-          <p className="text-[10px] sm:text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">
+        <div className="bg-elevated border border-amber-500/20 rounded-xl p-4 sm:p-5 col-span-2 lg:col-span-1">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-muted uppercase tracking-widest">
             Outstanding
           </p>
           <p className="text-lg sm:text-2xl font-bold text-amber-400 mt-1 break-words">
             {formatNaira(totalPendingPayout)}
           </p>
         </div>
-        <div className="bg-zinc-900 border border-emerald-500/20 rounded-xl p-4 sm:p-5 col-span-2 lg:col-span-1">
-          <p className="text-[10px] sm:text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">
+        <div className="bg-elevated border border-emerald-500/20 rounded-xl p-4 sm:p-5 col-span-2 lg:col-span-1">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-muted uppercase tracking-widest">
             Paid out
           </p>
           <p className="text-lg sm:text-2xl font-bold text-emerald-400 mt-1 break-words">
@@ -166,7 +166,7 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 text-xs text-zinc-600">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 text-xs text-subtle">
         <span className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           Coding — ₦{RATE_CODING.toLocaleString()} / {BLOCK_HOURS}h
@@ -177,20 +177,20 @@ export default async function AdminDashboard() {
         </span>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="px-4 sm:px-6 py-4 border-b border-zinc-800 flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-white flex items-center gap-2 min-w-0">
-            <span className="w-1.5 h-4 rounded-full bg-emerald-500 inline-block shrink-0" />
+      <div className="bg-elevated border border-default rounded-xl overflow-hidden">
+        <div className="px-4 sm:px-6 py-4 border-b border-default flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-primary flex items-center gap-2 min-w-0">
+            <span className="w-1.5 h-4 rounded-full bg-accent inline-block shrink-0" />
             <span className="truncate">All session logs</span>
           </h2>
-          <span className="text-xs text-zinc-500 shrink-0">{totalSessions} records</span>
+          <span className="text-xs text-muted shrink-0">{totalSessions} records</span>
         </div>
 
         {sessionList.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center px-4">
-            <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center mb-3">
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-3">
               <svg
-                className="w-5 h-5 text-zinc-600"
+                className="w-5 h-5 text-subtle"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -203,7 +203,7 @@ export default async function AdminDashboard() {
                 />
               </svg>
             </div>
-            <p className="text-zinc-500 text-sm">No sessions logged yet.</p>
+            <p className="text-muted text-sm">No sessions logged yet.</p>
           </div>
         ) : (
           <AdminSessionList

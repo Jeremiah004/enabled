@@ -1,12 +1,12 @@
 {
-  "name": "Enabled Multi Concept",
-  "short_name": "Enabled",
+  "name": "ENABLED",
+  "short_name": "ENABLED",
   "description": "Tutor session logging and payroll portal",
   "start_url": "/tutor",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#09090b",
-  "theme_color": "#10b981",
+  "background_color": "#faf8f5",
+  "theme_color": "#e85d2c",
   "orientation": "portrait-primary",
   "icons": [
     {

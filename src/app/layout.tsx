@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { DM_Sans, Instrument_Serif } from 'next/font/google';
+import { ThemeProvider } from '@/components/ThemeProvider';
 import './globals.css';
 
 const fontSans = DM_Sans({
@@ -16,14 +17,14 @@ const fontSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: 'Enabled Multi Concept — Staff Portal',
+  title: 'ENABLED — Staff Portal',
   description:
-    'Operational excellence for Enabled Multi Concept — session auditing, payroll governance, and staff administration.',
+    'Operational excellence for ENABLED — session auditing, payroll governance, and staff administration.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'Enabled',
+    statusBarStyle: 'default',
+    title: 'ENABLED',
   },
   icons: {
     icon: '/icons/icon-192.png',
@@ -32,7 +33,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#10b981',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#faf8f5' },
+    { media: '(prefers-color-scheme: dark)', color: '#1c1024' },
+  ],
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
@@ -44,8 +48,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${fontSans.variable} ${fontSerif.variable}`}>
-      <body className="font-sans antialiased">{children}</body>
+    <html lang="en" className={`${fontSans.variable} ${fontSerif.variable}`} suppressHydrationWarning>
+      <body className="font-sans antialiased bg-page text-primary">
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }
