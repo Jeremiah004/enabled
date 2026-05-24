@@ -2,10 +2,10 @@ import Link from 'next/link';
 
 export default function HomeHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-white/5 bg-zinc-950/70 backdrop-blur-xl">
-      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/25 group-hover:shadow-emerald-500/40 transition-shadow">
+    <header className="sticky top-0 z-50 border-b border-white/5 bg-zinc-950/70 backdrop-blur-xl safe-top">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
+        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group min-w-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/25 group-hover:shadow-emerald-500/40 transition-shadow flex-shrink-0">
             <svg
               className="w-5 h-5 text-zinc-950"
               fill="none"
@@ -20,21 +20,21 @@ export default function HomeHeader() {
               />
             </svg>
           </div>
-          <div>
-            <p className="text-sm font-bold text-white leading-none">Enabled Multi Concept</p>
-            <p className="text-[10px] text-zinc-500 mt-0.5">Staff Portal</p>
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-white leading-none truncate">Enabled Multi Concept</p>
+            <p className="text-[10px] text-zinc-500 mt-0.5 hidden sm:block">Staff Portal</p>
           </div>
         </Link>
-        <nav className="flex items-center gap-2 sm:gap-4">
+        <nav className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <Link
             href="/login"
-            className="text-sm font-medium text-zinc-400 hover:text-white px-3 py-2 rounded-lg hover:bg-white/5 transition-all"
+            className="text-sm font-medium text-zinc-400 hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/5 transition-all min-h-[44px] flex items-center"
           >
             Sign in
           </Link>
           <Link
             href="/signup"
-            className="text-sm font-semibold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 px-4 py-2 rounded-lg shadow-lg shadow-emerald-500/20 transition-all hover:shadow-emerald-500/30"
+            className="text-sm font-semibold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 px-3 sm:px-4 py-2.5 rounded-lg shadow-lg shadow-emerald-500/20 transition-all hover:shadow-emerald-500/30 min-h-[44px] flex items-center whitespace-nowrap"
           >
             Get started
           </Link>

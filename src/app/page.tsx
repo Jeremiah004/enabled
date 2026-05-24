@@ -65,7 +65,7 @@ export default function HomePage() {
 
       <main className="relative">
         {/* Hero */}
-        <section className="max-w-6xl mx-auto px-6 pt-16 pb-20 md:pt-24 md:pb-28">
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-16 sm:pb-20 md:pt-24 md:pb-28">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 mb-6">
@@ -74,10 +74,10 @@ export default function HomePage() {
                   Academy staff portal — now live
                 </span>
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-bold tracking-tight leading-[1.1] text-gradient">
+              <h1 className="text-3xl sm:text-5xl lg:text-[3.25rem] font-bold tracking-tight leading-[1.15] text-gradient">
                 Teach brilliantly. Track effortlessly.
               </h1>
-              <p className="text-zinc-400 text-lg mt-6 leading-relaxed max-w-lg">
+              <p className="text-zinc-400 text-base sm:text-lg mt-4 sm:mt-6 leading-relaxed max-w-lg">
                 Replace manual spreadsheets with real-time session logs, hour totals, and
                 payment status — built for Enabled Multi Concept tutors and admins.
               </p>
@@ -98,7 +98,7 @@ export default function HomePage() {
                   Go to dashboard
                 </Link>
               </div>
-              <div className="grid grid-cols-3 gap-4 mt-12 pt-8 border-t border-zinc-800/80">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-10 sm:mt-12 pt-6 sm:pt-8 border-t border-zinc-800/80">
                 {STATS.map((s) => (
                   <div key={s.label}>
                     <p className="text-2xl font-bold text-white">{s.value}</p>
@@ -147,7 +147,7 @@ export default function HomePage() {
         </section>
 
         {/* Features */}
-        <section className="max-w-6xl mx-auto px-6 pb-20">
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20">
           <p className="text-center text-xs font-semibold text-emerald-500/90 uppercase tracking-[0.2em] mb-3">
             How it works
           </p>
@@ -173,8 +173,8 @@ export default function HomePage() {
         </section>
 
         {/* Announcements */}
-        <section className="max-w-6xl mx-auto px-6 pb-24">
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/40 p-8 md:p-10 card-glow">
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-20 sm:pb-24">
+          <div className="rounded-2xl sm:rounded-3xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-8 md:p-10 card-glow">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
               <div>
                 <h2 className="text-2xl font-bold text-white">Announcements</h2>
@@ -230,7 +230,7 @@ export default function HomePage() {
 
         {/* CTA band */}
         <section className="border-t border-zinc-800/80 bg-zinc-900/30">
-          <div className="max-w-6xl mx-auto px-6 py-14 text-center">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 text-center">
             <h2 className="text-xl md:text-2xl font-bold text-white">Ready to log your first session?</h2>
             <p className="text-zinc-500 text-sm mt-2 max-w-md mx-auto">
               New tutors can register in under a minute. Already have an account? Sign in below.

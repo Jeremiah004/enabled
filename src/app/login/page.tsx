@@ -10,7 +10,7 @@ export default function LoginPage({
     searchParams?.error?.includes('not confirmed');
 
   return (
-    <div className="relative min-h-screen home-mesh flex items-center justify-center px-4 overflow-hidden">
+    <div className="relative min-h-[100dvh] home-mesh flex items-center justify-center px-4 py-8 overflow-x-hidden safe-top safe-bottom">
       <div className="absolute inset-0 grid-bg pointer-events-none opacity-40" />
 
       <div className="relative w-full max-w-md z-10">

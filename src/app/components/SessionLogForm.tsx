@@ -24,7 +24,7 @@ function todayISO() {
 }
 
 const inputClass =
-  'w-full bg-zinc-800/80 border border-zinc-700/80 text-white text-sm rounded-xl px-3.5 py-3 focus:outline-none focus:border-emerald-500/80 focus:ring-1 focus:ring-emerald-500/30 transition-all';
+  'w-full bg-zinc-800/80 border border-zinc-700/80 text-white text-base sm:text-sm rounded-xl px-3.5 py-3.5 sm:py-3 min-h-[48px] focus:outline-none focus:border-emerald-500/80 focus:ring-1 focus:ring-emerald-500/30 transition-all';
 
 const labelClass =
   'block text-xs font-medium text-zinc-400 mb-1.5';
@@ -35,7 +35,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 font-semibold text-sm py-3 rounded-xl shadow-lg shadow-emerald-500/15 transition-all"
+      className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 font-semibold text-base sm:text-sm py-3.5 sm:py-3 rounded-xl shadow-lg shadow-emerald-500/15 transition-all min-h-[48px]"
     >
       {pending ? 'Saving session…' : 'Log session'}
     </button>
@@ -172,7 +172,7 @@ export default function SessionLogForm({ students }: { students: Student[] }) {
                   type="button"
                   disabled={!startTime}
                   onClick={() => applyPreset(p.minutes)}
-                  className="text-xs font-medium px-3 py-1.5 rounded-lg border border-zinc-600 text-zinc-300 hover:border-emerald-500/50 hover:text-emerald-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="text-sm sm:text-xs font-medium px-4 py-2.5 sm:px-3 sm:py-1.5 rounded-lg border border-zinc-600 text-zinc-300 hover:border-emerald-500/50 hover:text-emerald-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors min-h-[44px]"
                 >
                   {p.label}
                 </button>

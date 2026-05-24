@@ -74,7 +74,7 @@ export default async function SignUpPage({
   };
 
   return (
-    <div className="relative min-h-screen home-mesh flex items-center justify-center px-4 overflow-hidden py-12">
+    <div className="relative min-h-[100dvh] home-mesh flex items-center justify-center px-4 overflow-x-hidden py-8 sm:py-12 safe-top safe-bottom">
       <div className="absolute inset-0 grid-bg pointer-events-none opacity-40" />
 
       <div className="relative w-full max-w-md z-10">

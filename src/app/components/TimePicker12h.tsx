@@ -13,7 +13,7 @@ const HOURS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'] as
 const emptyParts: Time12Parts = { hour: '', minute: '', period: 'PM' };
 
 const selectClass =
-  'w-full rounded-lg border bg-zinc-800 text-white text-sm font-medium py-2.5 pl-3 pr-8 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500';
+  'w-full rounded-lg border bg-zinc-800 text-white text-base sm:text-sm font-medium py-3 sm:py-2.5 pl-3 pr-8 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 min-h-[44px]';
 
 type TimePicker12hProps = {
   label: string;
