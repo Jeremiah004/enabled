@@ -1,11 +1,8 @@
 'use client';
 
 import { useFormState, useFormStatus } from 'react-dom';
-import {
-  announcementActionInitialState,
-  createAnnouncement,
-  toggleAnnouncementActive,
-} from '@/app/actions/announcements';
+import { announcementActionInitialState } from '@/app/actions/announcements.types';
+import { createAnnouncement, toggleAnnouncementActive } from '@/app/actions/announcements';
 import {
   isAnnouncementCurrentlyVisible,
   type AnnouncementRow,

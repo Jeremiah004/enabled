@@ -3,16 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
-
-export type AnnouncementActionState = {
-  error: string | null;
-  success: boolean;
-};
-
-export const announcementActionInitialState: AnnouncementActionState = {
-  error: null,
-  success: false,
-};
+import type { AnnouncementActionState } from '@/app/actions/announcements.types';
 
 function revalidateAnnouncementPaths() {
   revalidatePath('/admin/announcements');
