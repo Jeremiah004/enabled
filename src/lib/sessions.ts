@@ -2,6 +2,9 @@ export type SessionTimestampsResult =
   | { ok: true; start_time: string; end_time: string; durationHours: number }
   | { ok: false; error: string };
 
+/** Flat tutor payout per logged session (NGN), regardless of hours or subject. */
+export const FLAT_SESSION_PAYOUT_NGN = 3500;
+
 /** Normalize to 24h "HH:MM" — accepts "09:00", "09:00:00", or "5:30 PM" */
 export function normalizeTimeInput(time: string): string | null {
   const trimmed = time.trim();
@@ -44,27 +47,13 @@ export function parseLocalSessionDateTime(sessionDate: string, time: string): Da
   return dt;
 }
 
-/** Hourly tutor payout rates (NGN). */
-export const HOURLY_RATE_CODING = 3000;
-export const HOURLY_RATE_DEFAULT = 3500;
-
-/** True when the logged subject is Coding (case-insensitive). */
-export function isCodingSubject(subject: string): boolean {
-  return subject.trim().toLowerCase() === 'coding';
-}
-
-export function hourlyRateForSubject(subject: string): number {
-  return isCodingSubject(subject) ? HOURLY_RATE_CODING : HOURLY_RATE_DEFAULT;
-}
-
-/** Tutor payout for a session: hours × hourly rate by subject. */
+/** Tutor payout for one session — always the flat rate. */
 export function calcSessionPayout(
-  subject: string,
-  startTime: string,
-  endTime: string
+  _subject?: string,
+  _startTime?: string,
+  _endTime?: string
 ): number {
-  const hours = sessionDurationHours(startTime, endTime);
-  return hours * hourlyRateForSubject(subject);
+  return FLAT_SESSION_PAYOUT_NGN;
 }
 
 /** Hours between two ISO timestamptz values (always non-negative). */

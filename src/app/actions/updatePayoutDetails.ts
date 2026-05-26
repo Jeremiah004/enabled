@@ -36,6 +36,7 @@ export async function updatePayoutDetails(
       bank_code: bankCode,
       account_number: digitsOnly,
       account_name: accountName,
+      paystack_recipient_code: null,
     })
     .eq('id', user.id);
 

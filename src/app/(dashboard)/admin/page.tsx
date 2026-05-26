@@ -1,13 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth';
 import { sendPaidSessionReceipt } from '@/lib/email';
-import {
-  calcSessionPayout,
-  HOURLY_RATE_CODING,
-  HOURLY_RATE_DEFAULT,
-} from '@/lib/sessions';
+import { calcSessionPayout, FLAT_SESSION_PAYOUT_NGN } from '@/lib/sessions';
+import { formatNaira } from '@/lib/format';
 import { revalidatePath } from 'next/cache';
 import AdminSessionList from '@/app/components/AdminSessionList';
+import ProcessPayoutsButton from '@/app/components/ProcessPayoutsButton';
 
 export default async function AdminDashboard() {
   await requireRole(['ADMIN']);
@@ -37,7 +35,7 @@ export default async function AdminDashboard() {
   const totalSessions = sessionList.length;
 
   sessionList.forEach((s) => {
-    const payout = calcSessionPayout(s.subject, s.start_time, s.end_time);
+    const payout = calcSessionPayout();
     if (s.status === 'UNPAID') totalPendingPayout += payout;
     else totalPaidPayout += payout;
   });
@@ -85,7 +83,7 @@ export default async function AdminDashboard() {
         Math.abs(
           new Date(session.end_time).getTime() - new Date(session.start_time).getTime()
         ) / 36e5;
-      const payout = calcSessionPayout(session.subject, session.start_time, session.end_time);
+      const payout = calcSessionPayout();
       const sessionDate = new Date(session.start_time).toLocaleDateString('en-NG', {
         weekday: 'long',
         day: 'numeric',
@@ -112,18 +110,21 @@ export default async function AdminDashboard() {
     revalidatePath('/admin');
   };
 
-  const formatNaira = (amount: number) =>
-    `₦${amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
   return (
     <div className="space-y-6 sm:space-y-7">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-primary tracking-tight">
-          Payroll dashboard
-        </h1>
-        <p className="text-muted text-sm mt-1">
-          Review all logged sessions and manage tutor payments.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-primary tracking-tight">
+            Payroll dashboard
+          </h1>
+          <p className="text-muted text-sm mt-1">
+            Review all logged sessions and manage tutor payments.
+          </p>
+        </div>
+        <ProcessPayoutsButton
+          unpaidCount={unpaidCount}
+          outstandingLabel={formatNaira(totalPendingPayout)}
+        />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -160,11 +161,7 @@ export default async function AdminDashboard() {
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 text-xs text-subtle">
         <span className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-accent shrink-0" />
-          Coding — ₦{HOURLY_RATE_CODING.toLocaleString()} / hour
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-muted shrink-0" />
-          Other subjects — ₦{HOURLY_RATE_DEFAULT.toLocaleString()} / hour
+          Flat rate — {formatNaira(FLAT_SESSION_PAYOUT_NGN)} per session (any subject, any duration)
         </span>
       </div>
 
@@ -201,8 +198,6 @@ export default async function AdminDashboard() {
             sessions={sessionList}
             tutorNames={tutorNames}
             studentNames={studentNames}
-            formatNaira={formatNaira}
-            calcPayout={calcSessionPayout}
             markAsPaidAction={markAsPaidAction}
           />
         )}

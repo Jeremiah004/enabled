@@ -1,3 +1,11 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { deleteSession } from '@/app/actions/deleteSession';
+import { FLAT_SESSION_PAYOUT_NGN } from '@/lib/sessions';
+import { formatNaira } from '@/lib/format';
+
 type SessionRow = {
   id: string;
   subject: string;
@@ -23,28 +31,69 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+function DeleteSessionButton({ sessionId }: { sessionId: string }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+
+  function handleDelete() {
+    if (!window.confirm('Are you sure you want to delete this session?')) return;
+
+    startTransition(async () => {
+      const result = await deleteSession(sessionId);
+      if (!result.ok) {
+        window.alert(result.error ?? 'Could not delete session.');
+        return;
+      }
+      router.refresh();
+    });
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleDelete}
+      disabled={pending}
+      title="Delete session"
+      aria-label="Delete session"
+      className="inline-flex items-center justify-center text-red-500 hover:text-red-400 border border-red-500/30 hover:border-red-400/50 px-2.5 py-2 rounded-md transition-colors min-h-[36px] min-w-[36px] disabled:opacity-50"
+    >
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={1.75}
+        aria-hidden
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+        />
+      </svg>
+    </button>
+  );
+}
+
 export default function AdminSessionList({
   sessions,
   tutorNames,
   studentNames,
-  formatNaira,
-  calcPayout,
   markAsPaidAction,
 }: {
   sessions: SessionRow[];
   tutorNames: Map<string, string>;
   studentNames: Map<string, string>;
-  formatNaira: (amount: number) => string;
-  calcPayout: (subject: string, startTime: string, endTime: string) => number;
   markAsPaidAction: (formData: FormData) => Promise<void>;
 }) {
+  const payout = FLAT_SESSION_PAYOUT_NGN;
+
   return (
     <>
       <ul className="lg:hidden divide-y divide-[var(--border)]">
         {sessions.map((s) => {
           const hrs =
             Math.abs(new Date(s.end_time).getTime() - new Date(s.start_time).getTime()) / 36e5;
-          const payout = calcPayout(s.subject, s.start_time, s.end_time);
           const dateStr = new Date(s.start_time).toLocaleDateString('en-NG', {
             day: '2-digit',
             month: 'short',
@@ -69,24 +118,27 @@ export default function AdminSessionList({
                 <span>{hrs.toFixed(1)}h</span>
                 <span className="text-primary font-medium">{formatNaira(payout)}</span>
               </div>
-              {s.status === 'UNPAID' && (
-                <form action={markAsPaidAction}>
-                  <input type="hidden" name="session_id" value={s.id} />
-                  <button
-                    type="submit"
-                    className="w-full sm:w-auto text-sm font-medium text-accent hover:opacity-80 border border-[var(--nav-active-border)] px-4 py-3 rounded-xl transition-colors min-h-[44px]"
-                  >
-                    Mark paid
-                  </button>
-                </form>
-              )}
+              <div className="flex flex-wrap items-center gap-2">
+                {s.status === 'UNPAID' && (
+                  <form action={markAsPaidAction} className="flex-1 sm:flex-none">
+                    <input type="hidden" name="session_id" value={s.id} />
+                    <button
+                      type="submit"
+                      className="w-full sm:w-auto text-sm font-medium text-accent hover:opacity-80 border border-[var(--nav-active-border)] px-4 py-3 rounded-xl transition-colors min-h-[44px]"
+                    >
+                      Mark paid
+                    </button>
+                  </form>
+                )}
+                <DeleteSessionButton sessionId={s.id} />
+              </div>
             </li>
           );
         })}
       </ul>
 
       <div className="hidden lg:block overflow-x-auto">
-        <table className="w-full text-sm min-w-[900px]">
+        <table className="w-full text-sm min-w-[960px]">
           <thead>
             <tr className="border-b border-default bg-muted/50">
               <th className="text-left text-[11px] font-semibold text-muted uppercase tracking-widest px-6 py-3">
@@ -118,7 +170,6 @@ export default function AdminSessionList({
               const hrs =
                 Math.abs(new Date(s.end_time).getTime() - new Date(s.start_time).getTime()) /
                 36e5;
-              const payout = calcPayout(s.subject, s.start_time, s.end_time);
               const dateStr = new Date(s.start_time).toLocaleDateString('en-NG', {
                 day: '2-digit',
                 month: 'short',
@@ -143,17 +194,20 @@ export default function AdminSessionList({
                     <StatusBadge status={s.status} />
                   </td>
                   <td className="px-6 py-4">
-                    {s.status === 'UNPAID' && (
-                      <form action={markAsPaidAction}>
-                        <input type="hidden" name="session_id" value={s.id} />
-                        <button
-                          type="submit"
-                          className="text-xs font-medium text-accent hover:opacity-80 border border-[var(--nav-active-border)] px-3 py-2 rounded-md transition-colors whitespace-nowrap min-h-[36px]"
-                        >
-                          Mark Paid
-                        </button>
-                      </form>
-                    )}
+                    <div className="flex items-center justify-end gap-2">
+                      {s.status === 'UNPAID' && (
+                        <form action={markAsPaidAction}>
+                          <input type="hidden" name="session_id" value={s.id} />
+                          <button
+                            type="submit"
+                            className="text-xs font-medium text-accent hover:opacity-80 border border-[var(--nav-active-border)] px-3 py-2 rounded-md transition-colors whitespace-nowrap min-h-[36px]"
+                          >
+                            Mark Paid
+                          </button>
+                        </form>
+                      )}
+                      <DeleteSessionButton sessionId={s.id} />
+                    </div>
                   </td>
                 </tr>
               );
