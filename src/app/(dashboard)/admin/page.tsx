@@ -1,22 +1,13 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth';
 import { sendPaidSessionReceipt } from '@/lib/email';
+import {
+  calcSessionPayout,
+  HOURLY_RATE_CODING,
+  HOURLY_RATE_DEFAULT,
+} from '@/lib/sessions';
 import { revalidatePath } from 'next/cache';
 import AdminSessionList from '@/app/components/AdminSessionList';
-
-const RATE_CODING = 5000;
-const RATE_DEFAULT = 3500;
-const BLOCK_HOURS = 1.5;
-
-function getRate(subject: string): number {
-  return subject.toLowerCase().includes('coding') ? RATE_CODING : RATE_DEFAULT;
-}
-
-function calcPayout(subject: string, startTime: string, endTime: string): number {
-  const hrs =
-    Math.abs(new Date(endTime).getTime() - new Date(startTime).getTime()) / 36e5;
-  return (hrs / BLOCK_HOURS) * getRate(subject);
-}
 
 export default async function AdminDashboard() {
   await requireRole(['ADMIN']);
@@ -46,7 +37,7 @@ export default async function AdminDashboard() {
   const totalSessions = sessionList.length;
 
   sessionList.forEach((s) => {
-    const payout = calcPayout(s.subject, s.start_time, s.end_time);
+    const payout = calcSessionPayout(s.subject, s.start_time, s.end_time);
     if (s.status === 'UNPAID') totalPendingPayout += payout;
     else totalPaidPayout += payout;
   });
@@ -94,7 +85,7 @@ export default async function AdminDashboard() {
         Math.abs(
           new Date(session.end_time).getTime() - new Date(session.start_time).getTime()
         ) / 36e5;
-      const payout = calcPayout(session.subject, session.start_time, session.end_time);
+      const payout = calcSessionPayout(session.subject, session.start_time, session.end_time);
       const sessionDate = new Date(session.start_time).toLocaleDateString('en-NG', {
         weekday: 'long',
         day: 'numeric',
@@ -168,12 +159,12 @@ export default async function AdminDashboard() {
 
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 text-xs text-subtle">
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-          Coding — ₦{RATE_CODING.toLocaleString()} / {BLOCK_HOURS}h
+          <span className="w-2 h-2 rounded-full bg-accent shrink-0" />
+          Coding — ₦{HOURLY_RATE_CODING.toLocaleString()} / hour
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-zinc-500 shrink-0" />
-          Other — ₦{RATE_DEFAULT.toLocaleString()} / {BLOCK_HOURS}h
+          <span className="w-2 h-2 rounded-full bg-muted shrink-0" />
+          Other subjects — ₦{HOURLY_RATE_DEFAULT.toLocaleString()} / hour
         </span>
       </div>
 
@@ -211,7 +202,7 @@ export default async function AdminDashboard() {
             tutorNames={tutorNames}
             studentNames={studentNames}
             formatNaira={formatNaira}
-            calcPayout={calcPayout}
+            calcPayout={calcSessionPayout}
             markAsPaidAction={markAsPaidAction}
           />
         )}

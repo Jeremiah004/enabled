@@ -17,6 +17,7 @@ export type Profile = {
   full_name: string | null;
   email?: string | null;
   bank_name?: string | null;
+  bank_code?: string | null;
   account_number?: string | null;
   account_name?: string | null;
 };
@@ -42,7 +43,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, full_name, email, bank_name, account_number, account_name')
+    .select('role, full_name, email, bank_name, bank_code, account_number, account_name')
     .eq('id', user.id)
     .maybeSingle();
 
@@ -56,6 +57,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
           full_name: profile.full_name ?? null,
           email: profile.email ?? null,
           bank_name: profile.bank_name ?? null,
+          bank_code: profile.bank_code ?? null,
           account_number: profile.account_number ?? null,
           account_name: profile.account_name ?? null,
         }

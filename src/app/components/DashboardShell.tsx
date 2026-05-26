@@ -154,7 +154,7 @@ export default function DashboardShell({
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex w-60 flex-shrink-0 bg-sidebar border-r border-default flex-col">
         <div className="px-5 py-5 border-b border-default">
-          <Logo variant="mark" size="md" href={isAdmin ? '/admin' : '/tutor'} />
+          <Logo variant="full" size="sm" href={isAdmin ? '/admin' : '/tutor'} />
         </div>
         <nav className="flex-1 px-3 py-4">{navContent()}</nav>
         <div className="px-3 py-4 space-y-3">
@@ -218,7 +218,7 @@ export default function DashboardShell({
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
             </svg>
           </button>
-          <Logo variant="mark" size="sm" className="flex-shrink-0" />
+          <Logo variant="full" size="sm" href={isAdmin ? '/admin' : '/tutor'} className="flex-shrink-0 max-w-[120px]" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-primary truncate">{displayName}</p>
             <p className="text-[11px] text-muted capitalize">{roleLabel}</p>

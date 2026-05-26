@@ -26,34 +26,42 @@ export async function createAnnouncement(
   _prev: AnnouncementActionState,
   formData: FormData
 ): Promise<AnnouncementActionState> {
-  await requireRole(['ADMIN']);
-  const supabase = await createClient();
+  try {
+    await requireRole(['ADMIN']);
+    const supabase = await createClient();
 
-  const content = (formData.get('content') as string | null)?.trim() ?? '';
-  if (!content) {
-    return { error: 'Announcement text is required.', success: false };
+    const content = (formData.get('content') as string | null)?.trim() ?? '';
+    if (!content) {
+      return { error: 'Announcement text is required.', success: false };
+    }
+
+    const expiryRaw = (formData.get('expiry_date') as string | null)?.trim();
+    const expiry_date = expiryRaw ? new Date(expiryRaw).toISOString() : null;
+
+    if (expiry_date && Number.isNaN(new Date(expiry_date).getTime())) {
+      return { error: 'Invalid expiry date.', success: false };
+    }
+
+    const { error } = await supabase.from('announcements').insert({
+      content,
+      expiry_date,
+      is_active: true,
+    });
+
+    if (error) {
+      console.error('[createAnnouncement]', error.message);
+      return {
+        error: `Could not create announcement: ${error.message}`,
+        success: false,
+      };
+    }
+
+    revalidateAnnouncementPaths();
+    return { error: null, success: true };
+  } catch (err) {
+    console.error('[createAnnouncement] unexpected', err);
+    return { error: 'An unexpected error occurred. Please try again.', success: false };
   }
-
-  const expiryRaw = (formData.get('expiry_date') as string | null)?.trim();
-  const expiry_date = expiryRaw ? new Date(expiryRaw).toISOString() : null;
-
-  if (expiry_date && Number.isNaN(new Date(expiry_date).getTime())) {
-    return { error: 'Invalid expiry date.', success: false };
-  }
-
-  const { error } = await supabase.from('announcements').insert({
-    content,
-    expiry_date,
-    is_active: true,
-  });
-
-  if (error) {
-    console.error('[createAnnouncement]', error.message);
-    return { error: 'Could not create announcement.', success: false };
-  }
-
-  revalidateAnnouncementPaths();
-  return { error: null, success: true };
 }
 
 export async function toggleAnnouncementActive(formData: FormData): Promise<void> {

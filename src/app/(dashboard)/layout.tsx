@@ -17,9 +17,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .slice(0, 2)
     .toUpperCase();
 
+  let banner: React.ReactNode = null;
+  try {
+    banner = <AnnouncementBanner />;
+  } catch (err) {
+    console.error('[DashboardLayout] AnnouncementBanner', err);
+  }
+
   return (
     <DashboardShell
-      topBanner={<AnnouncementBanner />}
+      topBanner={banner}
       isAdmin={isAdmin}
       displayName={displayName}
       initials={initials}

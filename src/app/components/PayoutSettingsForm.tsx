@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { updatePayoutDetails } from '@/app/actions/updatePayoutDetails';
 import {
@@ -11,6 +12,8 @@ const inputClass =
   'w-full input-field text-base sm:text-sm rounded-xl px-3.5 py-3.5 sm:py-3 min-h-[48px] transition-all';
 
 const labelClass = 'block text-xs font-medium text-muted mb-1.5';
+
+type PaystackBank = { name: string; code: string };
 
 function SaveButton() {
   const { pending } = useFormStatus();
@@ -30,6 +33,7 @@ export default function PayoutSettingsForm({
 }: {
   initial: {
     bank_name: string | null;
+    bank_code: string | null;
     account_number: string | null;
     account_name: string | null;
   };
@@ -38,6 +42,52 @@ export default function PayoutSettingsForm({
     updatePayoutDetails,
     payoutDetailsInitialState
   );
+
+  const [banks, setBanks] = useState<PaystackBank[]>([]);
+  const [banksLoading, setBanksLoading] = useState(true);
+  const [banksError, setBanksError] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadBanks() {
+      try {
+        const res = await fetch('/api/paystack/banks');
+        const json = (await res.json()) as { banks?: PaystackBank[]; error?: string };
+        if (cancelled) return;
+        if (!res.ok || !json.banks) {
+          setBanksError(json.error ?? 'Could not load banks.');
+          setBanks([]);
+          return;
+        }
+        setBanks(json.banks);
+        setBanksError(null);
+      } catch {
+        if (!cancelled) {
+          setBanksError('Could not load banks. Try again later.');
+          setBanks([]);
+        }
+      } finally {
+        if (!cancelled) setBanksLoading(false);
+      }
+    }
+
+    loadBanks();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const matchedInitialCode =
+    initial.bank_code ||
+    banks.find((b) => b.name === initial.bank_name)?.code ||
+    '';
+
+  useEffect(() => {
+    if (!banks.length || !matchedInitialCode) return;
+    const bank = banks.find((b) => b.code === matchedInitialCode);
+    const hidden = document.getElementById('bank_name_hidden') as HTMLInputElement | null;
+    if (bank && hidden) hidden.value = bank.name;
+  }, [banks, matchedInitialCode]);
 
   const hasDetails =
     Boolean(initial.bank_name) &&
@@ -71,18 +121,40 @@ export default function PayoutSettingsForm({
         )}
 
         <div>
-          <label htmlFor="bank_name" className={labelClass}>
-            Bank name
+          <label htmlFor="bank_code" className={labelClass}>
+            Bank
           </label>
-          <input
-            id="bank_name"
-            name="bank_name"
-            type="text"
-            required
-            defaultValue={initial.bank_name ?? ''}
-            placeholder="e.g. GTBank, Access Bank"
-            className={inputClass}
-          />
+          <input type="hidden" name="bank_name" id="bank_name_hidden" value="" />
+          {banksLoading ? (
+            <p className="text-sm text-muted py-3">Loading Nigerian banks…</p>
+          ) : banksError ? (
+            <p className="text-sm text-amber-700 dark:text-amber-300 py-2">{banksError}</p>
+          ) : (
+            <select
+              id="bank_code"
+              name="bank_code"
+              required
+              defaultValue={matchedInitialCode}
+              onChange={(e) => {
+                const bank = banks.find((b) => b.code === e.target.value);
+                const hidden = document.getElementById('bank_name_hidden') as HTMLInputElement | null;
+                if (hidden && bank) hidden.value = bank.name;
+              }}
+              className={inputClass}
+            >
+              <option value="">Select your bank…</option>
+              {banks.map((b) => (
+                <option key={b.code} value={b.code}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          )}
+          {!banksLoading && !banksError && initial.bank_name && !matchedInitialCode && (
+            <p className="text-xs text-subtle mt-1.5">
+              Previously saved: {initial.bank_name} — please re-select from the list.
+            </p>
+          )}
         </div>
 
         <div>
@@ -105,7 +177,7 @@ export default function PayoutSettingsForm({
 
         <div>
           <label htmlFor="account_name" className={labelClass}>
-            Account name
+            Account Name (The full name on your bank account)
           </label>
           <input
             id="account_name"
@@ -113,7 +185,7 @@ export default function PayoutSettingsForm({
             type="text"
             required
             defaultValue={initial.account_name ?? ''}
-            placeholder="Name on bank account"
+            placeholder="Exactly as it appears on your bank account"
             className={inputClass}
           />
         </div>

@@ -44,6 +44,29 @@ export function parseLocalSessionDateTime(sessionDate: string, time: string): Da
   return dt;
 }
 
+/** Hourly tutor payout rates (NGN). */
+export const HOURLY_RATE_CODING = 3000;
+export const HOURLY_RATE_DEFAULT = 3500;
+
+/** True when the logged subject is Coding (case-insensitive). */
+export function isCodingSubject(subject: string): boolean {
+  return subject.trim().toLowerCase() === 'coding';
+}
+
+export function hourlyRateForSubject(subject: string): number {
+  return isCodingSubject(subject) ? HOURLY_RATE_CODING : HOURLY_RATE_DEFAULT;
+}
+
+/** Tutor payout for a session: hours × hourly rate by subject. */
+export function calcSessionPayout(
+  subject: string,
+  startTime: string,
+  endTime: string
+): number {
+  const hours = sessionDurationHours(startTime, endTime);
+  return hours * hourlyRateForSubject(subject);
+}
+
 /** Hours between two ISO timestamptz values (always non-negative). */
 export function sessionDurationHours(startTime: string, endTime: string): number {
   const start = new Date(startTime);

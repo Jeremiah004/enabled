@@ -94,6 +94,7 @@ export default async function TutorDashboard() {
     <PayoutSettingsForm
       initial={{
         bank_name: profile?.bank_name ?? null,
+        bank_code: profile?.bank_code ?? null,
         account_number: profile?.account_number ?? null,
         account_name: profile?.account_name ?? null,
       }}
