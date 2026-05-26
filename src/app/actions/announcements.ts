@@ -88,3 +88,31 @@ export async function toggleAnnouncementActive(formData: FormData): Promise<void
     console.error('[toggleAnnouncementActive] unexpected', err);
   }
 }
+
+export async function deleteAnnouncement(
+  announcementId: string
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    await requireRole(['ADMIN']);
+
+    const id = announcementId?.trim();
+    if (!id) {
+      return { ok: false, error: 'Missing announcement id.' };
+    }
+
+    const supabase = await createClient();
+    const { error } = await supabase.from('announcements').delete().eq('id', id);
+
+    if (error) {
+      console.error('[deleteAnnouncement]', error.message, error.code);
+      return { ok: false, error: 'Could not delete announcement. Please try again.' };
+    }
+
+    revalidateAnnouncementPaths();
+    return { ok: true };
+  } catch (err) {
+    if (isNextNavigationError(err)) throw err;
+    console.error('[deleteAnnouncement] unexpected', err);
+    return { ok: false, error: 'An unexpected error occurred. Please try again.' };
+  }
+}

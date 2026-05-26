@@ -10,6 +10,7 @@ import {
   tutorDisplayName,
   type TutorBankProfile,
 } from '@/lib/paystack-transfers';
+import { sendTutorReceipt } from '@/app/actions/email';
 import { revalidatePath } from 'next/cache';
 import type { ProcessPayoutsResult } from '@/app/actions/processPayouts.types';
 
@@ -176,6 +177,37 @@ export async function processBulkPayouts(): Promise<ProcessPayoutsResult> {
       skippedTutors,
     };
   }
+
+  const paidBatches = transferBatch.filter(
+    (b) => successfulRefs.has(b.reference) || paystackResult.results.length === 0
+  );
+
+  const payoutDate = new Date().toLocaleDateString('en-NG', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  await Promise.allSettled(
+    paidBatches.map(async (batch) => {
+      const profile = profileById.get(batch.tutorId);
+      if (!profile?.email?.trim()) {
+        console.warn('[processBulkPayouts] no email for tutor', batch.tutorId);
+        return;
+      }
+
+      const sessionCount = batch.sessionIds.length;
+      const amountPaid = sessionCount * FLAT_SESSION_PAYOUT_NGN;
+
+      await sendTutorReceipt(profile.email, {
+        tutorName: tutorDisplayName(profile),
+        amountPaid,
+        date: payoutDate,
+        sessionCount,
+      });
+    })
+  );
 
   revalidatePath('/admin');
 
