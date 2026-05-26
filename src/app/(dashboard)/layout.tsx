@@ -1,7 +1,8 @@
+import { Suspense } from 'react';
 import { getSessionUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import DashboardShell from '@/app/components/DashboardShell';
-import AnnouncementBanner from '@/components/AnnouncementBanner';
+import AnnouncementBannerClient from '@/components/AnnouncementBannerClient';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getSessionUser();
@@ -17,16 +18,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .slice(0, 2)
     .toUpperCase();
 
-  let banner: React.ReactNode = null;
-  try {
-    banner = <AnnouncementBanner />;
-  } catch (err) {
-    console.error('[DashboardLayout] AnnouncementBanner', err);
-  }
-
   return (
     <DashboardShell
-      topBanner={banner}
+      topBanner={
+        <Suspense fallback={null}>
+          <AnnouncementBannerClient />
+        </Suspense>
+      }
       isAdmin={isAdmin}
       displayName={displayName}
       initials={initials}

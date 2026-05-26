@@ -16,10 +16,14 @@ export const announcementActionInitialState: AnnouncementActionState = {
 
 function revalidateAnnouncementPaths() {
   revalidatePath('/admin/announcements');
-  revalidatePath('/admin', 'layout');
   revalidatePath('/tutor', 'layout');
-  revalidatePath('/admin', 'page');
-  revalidatePath('/tutor', 'page');
+  revalidatePath('/admin', 'layout');
+}
+
+function isNextNavigationError(err: unknown): boolean {
+  if (!err || typeof err !== 'object' || !('digest' in err)) return false;
+  const digest = String((err as { digest?: string }).digest);
+  return digest.includes('NEXT_REDIRECT') || digest.includes('NEXT_NOT_FOUND');
 }
 
 export async function createAnnouncement(
@@ -36,10 +40,13 @@ export async function createAnnouncement(
     }
 
     const expiryRaw = (formData.get('expiry_date') as string | null)?.trim();
-    const expiry_date = expiryRaw ? new Date(expiryRaw).toISOString() : null;
-
-    if (expiry_date && Number.isNaN(new Date(expiry_date).getTime())) {
-      return { error: 'Invalid expiry date.', success: false };
+    let expiry_date: string | null = null;
+    if (expiryRaw) {
+      const parsed = new Date(expiryRaw);
+      if (Number.isNaN(parsed.getTime())) {
+        return { error: 'Invalid expiry date.', success: false };
+      }
+      expiry_date = parsed.toISOString();
     }
 
     const { error } = await supabase.from('announcements').insert({
@@ -49,7 +56,7 @@ export async function createAnnouncement(
     });
 
     if (error) {
-      console.error('[createAnnouncement]', error.message);
+      console.error('[createAnnouncement]', error.message, error.code);
       return {
         error: `Could not create announcement: ${error.message}`,
         success: false,
@@ -59,28 +66,34 @@ export async function createAnnouncement(
     revalidateAnnouncementPaths();
     return { error: null, success: true };
   } catch (err) {
+    if (isNextNavigationError(err)) throw err;
     console.error('[createAnnouncement] unexpected', err);
     return { error: 'An unexpected error occurred. Please try again.', success: false };
   }
 }
 
 export async function toggleAnnouncementActive(formData: FormData): Promise<void> {
-  await requireRole(['ADMIN']);
-  const id = formData.get('id') as string;
-  const nextActive = formData.get('is_active') === 'true';
+  try {
+    await requireRole(['ADMIN']);
+    const id = formData.get('id') as string;
+    const nextActive = formData.get('is_active') === 'true';
 
-  if (!id) return;
+    if (!id) return;
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from('announcements')
-    .update({ is_active: nextActive })
-    .eq('id', id);
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('announcements')
+      .update({ is_active: nextActive })
+      .eq('id', id);
 
-  if (error) {
-    console.error('[toggleAnnouncementActive]', error.message);
-    return;
+    if (error) {
+      console.error('[toggleAnnouncementActive]', error.message);
+      return;
+    }
+
+    revalidateAnnouncementPaths();
+  } catch (err) {
+    if (isNextNavigationError(err)) throw err;
+    console.error('[toggleAnnouncementActive] unexpected', err);
   }
-
-  revalidateAnnouncementPaths();
 }

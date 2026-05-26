@@ -32,6 +32,30 @@ export function isStaffRole(role: UserRole | null | undefined): role is StaffRol
   return role === 'ADMIN' || role === 'TUTOR';
 }
 
+function mapProfileRow(
+  profile: {
+    role: string | null;
+    full_name: string | null;
+    email: string | null;
+    bank_name?: string | null;
+    bank_code?: string | null;
+    account_number?: string | null;
+    account_name?: string | null;
+  } | null
+): Profile | null {
+  if (!profile) return null;
+  const role = normalizeRole(profile.role ?? null);
+  return {
+    role,
+    full_name: profile.full_name ?? null,
+    email: profile.email ?? null,
+    bank_name: profile.bank_name ?? null,
+    bank_code: profile.bank_code ?? null,
+    account_number: profile.account_number ?? null,
+    account_name: profile.account_name ?? null,
+  };
+}
+
 export async function getSessionUser(): Promise<SessionUser | null> {
   const supabase = await createClient();
   const {
@@ -41,28 +65,40 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 
   if (error || !user) return null;
 
-  const { data: profile } = await supabase
+  const fullSelect =
+    'role, full_name, email, bank_name, bank_code, account_number, account_name';
+  let { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('role, full_name, email, bank_name, bank_code, account_number, account_name')
+    .select(fullSelect)
     .eq('id', user.id)
     .maybeSingle();
 
-  const role = normalizeRole(profile?.role ?? null);
+  if (
+    profileError &&
+    (profileError.message.includes('bank_code') || profileError.code === '42703')
+  ) {
+    console.warn('[auth] bank_code column missing — retrying profile fetch without it');
+    const fallback = await supabase
+      .from('profiles')
+      .select('role, full_name, email, bank_name, account_number, account_name')
+      .eq('id', user.id)
+      .maybeSingle();
+    profile = fallback.data
+      ? { ...fallback.data, bank_code: null }
+      : null;
+    profileError = fallback.error;
+  }
+
+  if (profileError) {
+    console.error('[auth] profile fetch failed:', profileError.message);
+  }
+
+  const mapped = mapProfileRow(profile);
 
   return {
     user,
-    profile: profile
-      ? {
-          role,
-          full_name: profile.full_name ?? null,
-          email: profile.email ?? null,
-          bank_name: profile.bank_name ?? null,
-          bank_code: profile.bank_code ?? null,
-          account_number: profile.account_number ?? null,
-          account_name: profile.account_name ?? null,
-        }
-      : null,
-    role,
+    profile: mapped,
+    role: mapped?.role ?? null,
   };
 }
 

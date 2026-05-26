@@ -2,18 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
+import { getPaystackBanks } from '@/app/actions/paystack';
 import { updatePayoutDetails } from '@/app/actions/updatePayoutDetails';
 import {
   payoutDetailsInitialState,
   type PayoutDetailsState,
 } from '@/app/actions/updatePayoutDetails.types';
+import type { PaystackBank } from '@/lib/paystack';
 
 const inputClass =
   'w-full input-field text-base sm:text-sm rounded-xl px-3.5 py-3.5 sm:py-3 min-h-[48px] transition-all';
 
 const labelClass = 'block text-xs font-medium text-muted mb-1.5';
-
-type PaystackBank = { name: string; code: string };
 
 function SaveButton() {
   const { pending } = useFormStatus();
@@ -45,25 +45,26 @@ export default function PayoutSettingsForm({
 
   const [banks, setBanks] = useState<PaystackBank[]>([]);
   const [banksLoading, setBanksLoading] = useState(true);
-  const [banksError, setBanksError] = useState<string | null>(null);
+  const [banksNotice, setBanksNotice] = useState<string | null>(null);
+
   useEffect(() => {
     let cancelled = false;
 
     async function loadBanks() {
       try {
-        const res = await fetch('/api/paystack/banks');
-        const json = (await res.json()) as { banks?: PaystackBank[]; error?: string };
+        const result = await getPaystackBanks();
         if (cancelled) return;
-        if (!res.ok || !json.banks) {
-          setBanksError(json.error ?? 'Could not load banks.');
-          setBanks([]);
-          return;
+        setBanks(result.banks);
+        if (result.error) {
+          setBanksNotice(result.error);
+        } else if (result.source === 'fallback') {
+          setBanksNotice('Using standard bank list — Paystack live list unavailable.');
+        } else {
+          setBanksNotice(null);
         }
-        setBanks(json.banks);
-        setBanksError(null);
       } catch {
         if (!cancelled) {
-          setBanksError('Could not load banks. Try again later.');
+          setBanksNotice('Could not load banks. Refresh the page to try again.');
           setBanks([]);
         }
       } finally {
@@ -124,33 +125,40 @@ export default function PayoutSettingsForm({
           <label htmlFor="bank_code" className={labelClass}>
             Bank
           </label>
-          <input type="hidden" name="bank_name" id="bank_name_hidden" value="" />
+          <input type="hidden" name="bank_name" id="bank_name_hidden" defaultValue={initial.bank_name ?? ''} />
           {banksLoading ? (
             <p className="text-sm text-muted py-3">Loading Nigerian banks…</p>
-          ) : banksError ? (
-            <p className="text-sm text-amber-700 dark:text-amber-300 py-2">{banksError}</p>
+          ) : banks.length === 0 ? (
+            <p className="text-sm text-amber-700 dark:text-amber-300 py-2">
+              No banks available. Restart the dev server if you just added Paystack keys.
+            </p>
           ) : (
-            <select
-              id="bank_code"
-              name="bank_code"
-              required
-              defaultValue={matchedInitialCode}
-              onChange={(e) => {
-                const bank = banks.find((b) => b.code === e.target.value);
-                const hidden = document.getElementById('bank_name_hidden') as HTMLInputElement | null;
-                if (hidden && bank) hidden.value = bank.name;
-              }}
-              className={inputClass}
-            >
-              <option value="">Select your bank…</option>
-              {banks.map((b) => (
-                <option key={b.code} value={b.code}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+            <>
+              <select
+                id="bank_code"
+                name="bank_code"
+                required
+                defaultValue={matchedInitialCode}
+                onChange={(e) => {
+                  const bank = banks.find((b) => b.code === e.target.value);
+                  const hidden = document.getElementById('bank_name_hidden') as HTMLInputElement | null;
+                  if (hidden && bank) hidden.value = bank.name;
+                }}
+                className={inputClass}
+              >
+                <option value="">Select your bank…</option>
+                {banks.map((b) => (
+                  <option key={b.code} value={b.code}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+              {banksNotice && (
+                <p className="text-xs text-subtle mt-1.5">{banksNotice}</p>
+              )}
+            </>
           )}
-          {!banksLoading && !banksError && initial.bank_name && !matchedInitialCode && (
+          {!banksLoading && initial.bank_name && !matchedInitialCode && (
             <p className="text-xs text-subtle mt-1.5">
               Previously saved: {initial.bank_name} — please re-select from the list.
             </p>

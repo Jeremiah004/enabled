@@ -6,15 +6,9 @@ import { cookies } from 'next/headers'
  *   - Server Components
  *   - Server Actions
  *   - Route Handlers (app/api/...)
- *
- * Must be called inside an async context where `cookies()` is available.
- *
- * Usage:
- *   const supabase = await createClient()
- *   const { data } = await supabase.from('sessions').select('*')
  */
 export async function createClient() {
-  const cookieStore = await cookies()
+  const cookieStore = cookies()
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,9 +24,7 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // `setAll` is called from a Server Component where cookies
-            // cannot be set. Safe to ignore if you have a middleware
-            // refreshing sessions (recommended).
+            // Safe to ignore in Server Components when middleware refreshes sessions.
           }
         },
       },
