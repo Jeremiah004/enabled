@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth';
 import { sessionDurationHours } from '@/lib/sessions';
+import { getAllStudents } from '@/lib/students';
 import SessionLogForm from '@/app/components/SessionLogForm';
 import TutorSessionHistory from '@/app/components/TutorSessionHistory';
 import TutorDashboardTabs from '@/app/components/TutorDashboardTabs';
@@ -12,10 +13,7 @@ export default async function TutorDashboard() {
   const { user, profile } = await requireRole(['TUTOR']);
   const supabase = await createClient();
 
-  const { data: students } = await supabase
-    .from('students')
-    .select('id, full_name')
-    .order('full_name', { ascending: true });
+  const { students } = await getAllStudents(supabase);
 
   const studentNames = new Map(
     (students ?? []).map((s) => [s.id, s.full_name])

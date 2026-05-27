@@ -3,6 +3,7 @@ import { requireRole } from '@/lib/auth';
 import { sendPaidSessionReceipt } from '@/lib/email';
 import { calcSessionPayout, FLAT_SESSION_PAYOUT_NGN } from '@/lib/sessions';
 import { formatNaira } from '@/lib/format';
+import { getAllStudents } from '@/lib/students';
 import { revalidatePath } from 'next/cache';
 import AdminSessionList from '@/app/components/AdminSessionList';
 import ProcessPayoutsButton from '@/app/components/ProcessPayoutsButton';
@@ -11,7 +12,7 @@ export default async function AdminDashboard() {
   await requireRole(['ADMIN']);
   const supabase = await createClient();
 
-  const [{ data: sessions }, { data: profiles }, { data: students }] = await Promise.all([
+  const [{ data: sessions }, { data: profiles }, { students }] = await Promise.all([
     supabase
       .from('sessions')
       .select(
@@ -19,7 +20,7 @@ export default async function AdminDashboard() {
       )
       .order('created_at', { ascending: false }),
     supabase.from('profiles').select('id, full_name, email'),
-    supabase.from('students').select('id, full_name'),
+    getAllStudents(supabase),
   ]);
 
   const tutorNames = new Map(
