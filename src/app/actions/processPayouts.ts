@@ -4,9 +4,10 @@ import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth';
 import { FLAT_SESSION_PAYOUT_NGN } from '@/lib/sessions';
 import {
-  createTransferRecipient,
+  buildBulkTransferReference,
   initiatePaystackBulkTransfer,
   ngnToKobo,
+  resolveTransferRecipient,
   tutorDisplayName,
   type TutorBankProfile,
 } from '@/lib/paystack-transfers';
@@ -80,16 +81,15 @@ export async function processBulkPayouts(): Promise<ProcessPayoutsResult> {
       continue;
     }
 
-    let recipientCode = profile.paystack_recipient_code?.trim() ?? '';
+    const recipientResult = await resolveTransferRecipient(profile);
+    if (!recipientResult.ok) {
+      skippedTutors.push(`${name}: ${recipientResult.error}`);
+      continue;
+    }
 
-    if (!recipientCode) {
-      const created = await createTransferRecipient(profile);
-      if (!created.ok) {
-        skippedTutors.push(`${name}: ${created.error}`);
-        continue;
-      }
-      recipientCode = created.recipientCode;
+    const recipientCode = recipientResult.recipientCode;
 
+    if (recipientResult.created) {
       const { error: updateProfileError } = await supabase
         .from('profiles')
         .update({ paystack_recipient_code: recipientCode })
@@ -101,13 +101,30 @@ export async function processBulkPayouts(): Promise<ProcessPayoutsResult> {
     }
 
     const amountNgn = sessionIds.length * FLAT_SESSION_PAYOUT_NGN;
-    const reference = `en_bulk_${tutorId.replace(/-/g, '').slice(0, 12)}_${Date.now()}`;
+    const amountKobo = ngnToKobo(amountNgn);
+
+    if (amountKobo < 100) {
+      skippedTutors.push(`${name}: payout amount too small (${amountKobo} kobo)`);
+      continue;
+    }
+
+    const reference = buildBulkTransferReference(tutorId);
+
+    console.info('[processBulkPayouts] transfer line', {
+      tutorId,
+      tutorName: name,
+      sessions: sessionIds.length,
+      amountNgn,
+      amountKobo,
+      recipientCode,
+      reference,
+    });
 
     transferBatch.push({
       tutorId,
       sessionIds,
       reference,
-      amountKobo: ngnToKobo(amountNgn),
+      amountKobo,
       recipientCode,
       reason: `Enabled tutor payout — ${sessionIds.length} session(s) @ ₦${FLAT_SESSION_PAYOUT_NGN.toLocaleString()}`,
     });

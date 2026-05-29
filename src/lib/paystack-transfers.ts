@@ -68,7 +68,16 @@ export async function createTransferRecipient(profile: TutorBankProfile): Promis
       };
     }
 
-    return { ok: true, recipientCode: json.data.recipient_code };
+    const recipientCode = String(json.data.recipient_code).trim();
+    if (!isPaystackRecipientCode(recipientCode)) {
+      console.error('[paystack] create recipient unexpected code shape:', recipientCode);
+      return {
+        ok: false,
+        error: 'Paystack did not return a valid transfer recipient code.',
+      };
+    }
+
+    return { ok: true, recipientCode };
   } catch (err) {
     console.error('[paystack] create recipient', err);
     return { ok: false, error: 'Network error while creating Paystack recipient.' };
@@ -102,27 +111,65 @@ export async function initiatePaystackBulkTransfer(
     return { ok: false, error: 'No transfers to process.' };
   }
 
+  const normalizedTransfers: {
+    amount: number;
+    reference: string;
+    recipient: string;
+    reason: string;
+  }[] = [];
+
+  for (const t of transfers) {
+    const recipient = t.recipientCode.trim();
+    const amount = Math.trunc(t.amountKobo);
+
+    if (!isPaystackRecipientCode(recipient)) {
+      console.error('[paystack] bulk transfer skip invalid recipient:', recipient);
+      return {
+        ok: false,
+        error: `Invalid transfer recipient "${recipient}". Expected a Paystack RCP_… code.`,
+      };
+    }
+
+    if (!Number.isInteger(amount) || amount < 100) {
+      console.error('[paystack] bulk transfer skip invalid amount (kobo):', amount);
+      return {
+        ok: false,
+        error: `Invalid transfer amount (${amount} kobo). Amount must be a positive integer in kobo.`,
+      };
+    }
+
+    if (!t.reference?.trim()) {
+      return { ok: false, error: 'Each transfer requires a unique reference.' };
+    }
+
+    normalizedTransfers.push({
+      amount,
+      reference: t.reference.trim(),
+      recipient,
+      reason: (t.reason || 'Enabled tutor payout').slice(0, 100),
+    });
+  }
+
+  const payload = {
+    currency: 'NGN' as const,
+    source: 'balance' as const,
+    transfers: normalizedTransfers,
+  };
+
+  console.log('PAYSTACK PAYLOAD:', JSON.stringify(payload, null, 2));
+
   try {
     const res = await fetch('https://api.paystack.co/transfer/bulk', {
       method: 'POST',
       headers: paystackHeaders(secret),
-      body: JSON.stringify({
-        currency: 'NGN',
-        source: 'balance',
-        transfers: transfers.map((t) => ({
-          amount: t.amountKobo,
-          reference: t.reference,
-          recipient: t.recipientCode,
-          reason: t.reason,
-        })),
-      }),
+      body: JSON.stringify(payload),
       cache: 'no-store',
     });
 
     const json = (await res.json()) as PaystackApiResponse<BulkTransferResultItem[]>;
 
     if (!res.ok || !json.status) {
-      console.error('[paystack] bulk transfer', res.status, json.message);
+      console.error('[paystack] bulk transfer', res.status, json.message, json);
       return {
         ok: false,
         error: json.message || 'Paystack bulk transfer failed.',
@@ -140,8 +187,59 @@ export async function initiatePaystackBulkTransfer(
   }
 }
 
+/** Paystack amounts must be integer kobo (NGN × 100). ₦3,500 → 350000. */
 export function ngnToKobo(amountNgn: number): number {
-  return Math.round(amountNgn * 100);
+  const naira = Number(amountNgn);
+  if (!Number.isFinite(naira) || naira <= 0) {
+    return 0;
+  }
+  return Math.round(naira * 100);
+}
+
+/** Paystack bulk transfers require a transfer recipient code, not a bank account number. */
+export function isPaystackRecipientCode(code: string | null | undefined): boolean {
+  if (!code) return false;
+  return /^RCP_[a-z0-9]+$/i.test(code.trim());
+}
+
+export function buildBulkTransferReference(tutorId: string): string {
+  const slug = tutorId.replace(/-/g, '').slice(0, 12);
+  const ts = Date.now();
+  const rand = Math.random().toString(36).slice(2, 10);
+  return `en_${slug}_${ts}_${rand}`.slice(0, 50);
+}
+
+/**
+ * Returns a valid RCP_… code — creates a Paystack transfer recipient when missing or invalid.
+ */
+export async function resolveTransferRecipient(
+  profile: TutorBankProfile
+): Promise<{ ok: true; recipientCode: string; created: boolean } | { ok: false; error: string }> {
+  const existing = profile.paystack_recipient_code?.trim() ?? '';
+  if (isPaystackRecipientCode(existing)) {
+    return { ok: true, recipientCode: existing, created: false };
+  }
+
+  if (existing && !isPaystackRecipientCode(existing)) {
+    console.warn(
+      '[paystack] invalid stored recipient (expected RCP_…), recreating:',
+      existing.slice(0, 20)
+    );
+  }
+
+  const created = await createTransferRecipient(profile);
+  if (!created.ok) {
+    return created;
+  }
+
+  if (!isPaystackRecipientCode(created.recipientCode)) {
+    return {
+      ok: false,
+      error: 'Paystack returned an invalid recipient code.',
+    };
+  }
+
+  return { ok: true, recipientCode: created.recipientCode, created: true };
 }
 
 export function tutorDisplayName(profile: TutorBankProfile): string {
