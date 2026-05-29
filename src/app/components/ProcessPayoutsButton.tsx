@@ -3,25 +3,26 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { processBulkPayouts } from '@/app/actions/processPayouts';
-import { sendTutorReceipt } from '@/app/actions/email';
+import { downloadPayrollCsv, type UnpaidPayrollExportRow } from '@/lib/payroll-csv';
 
 export default function ProcessPayoutsButton({
   unpaidCount,
   outstandingLabel,
+  unpaidPayrollRows,
 }: {
   unpaidCount: number;
   outstandingLabel: string;
+  unpaidPayrollRows: UnpaidPayrollExportRow[];
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [testPending, startTestTransition] = useTransition();
   const [feedback, setFeedback] = useState<{
     type: 'success' | 'error';
     message: string;
     skipped?: string[];
   } | null>(null);
 
-  function handleClick() {
+  function handleProcessPayouts() {
     if (unpaidCount === 0) {
       window.alert('There are no unpaid sessions to process.');
       return;
@@ -54,28 +55,13 @@ export default function ProcessPayoutsButton({
     });
   }
 
-  function handleTestEmailReceipt() {
-    const today = new Date().toLocaleDateString('en-NG', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
+  function handleExportCsv() {
+    if (unpaidPayrollRows.length === 0) {
+      window.alert('There are no unpaid tutors to export.');
+      return;
+    }
 
-    startTestTransition(async () => {
-      const result = await sendTutorReceipt('okolojeremiah2019@gmail.com', {
-        tutorName: 'Test Tutor',
-        amountPaid: 3500,
-        date: today,
-        sessionCount: 1,
-      });
-
-      if (result.ok) {
-        window.alert('Test Email Receipt sent successfully.');
-      } else {
-        window.alert(`Test Email Receipt failed: ${result.error ?? 'Unknown error'}`);
-      }
-    });
+    downloadPayrollCsv(unpaidPayrollRows);
   }
 
   return (
@@ -83,19 +69,19 @@ export default function ProcessPayoutsButton({
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={handleClick}
-          disabled={pending || testPending || unpaidCount === 0}
+          onClick={handleProcessPayouts}
+          disabled={pending || unpaidCount === 0}
           className="btn-primary font-semibold text-sm px-6 py-3 rounded-xl min-h-[48px] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? 'Processing payouts…' : 'Process Payouts'}
         </button>
         <button
           type="button"
-          onClick={handleTestEmailReceipt}
-          disabled={testPending || pending}
-          className="text-sm font-medium text-muted hover:text-primary border border-default px-4 py-3 rounded-xl min-h-[48px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={handleExportCsv}
+          disabled={pending || unpaidPayrollRows.length === 0}
+          className="text-sm font-medium text-muted hover:text-primary border border-default bg-transparent px-4 py-3 rounded-xl min-h-[48px] transition-colors hover:bg-muted/50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {testPending ? 'Sending test…' : 'Test Email Receipt'}
+          Export CSV
         </button>
       </div>
 

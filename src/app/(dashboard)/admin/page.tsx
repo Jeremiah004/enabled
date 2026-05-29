@@ -1,9 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth';
-import { sendPaidSessionReceipt } from '@/lib/email';
+import { sendTutorReceipt } from '@/app/actions/email';
 import { calcSessionPayout, FLAT_SESSION_PAYOUT_NGN } from '@/lib/sessions';
 import { formatNaira } from '@/lib/format';
 import { getAllStudents } from '@/lib/students';
+import { buildUnpaidPayrollRows } from '@/lib/unpaid-payroll';
 import { revalidatePath } from 'next/cache';
 import AdminSessionList from '@/app/components/AdminSessionList';
 import ProcessPayoutsButton from '@/app/components/ProcessPayoutsButton';
@@ -19,7 +20,9 @@ export default async function AdminDashboard() {
         'id, subject, start_time, end_time, status, topics_covered, tutor_id, student_id'
       )
       .order('created_at', { ascending: false }),
-    supabase.from('profiles').select('id, full_name, email'),
+    supabase.from('profiles').select(
+      'id, full_name, email, bank_name, bank_code, account_number'
+    ),
     getAllStudents(supabase),
   ]);
 
@@ -42,6 +45,8 @@ export default async function AdminDashboard() {
   });
 
   const unpaidCount = sessionList.filter((s) => s.status === 'UNPAID').length;
+
+  const unpaidPayrollRows = buildUnpaidPayrollRows(sessionList, profiles ?? []);
 
   const markAsPaidAction = async (formData: FormData) => {
     'use server';
@@ -67,23 +72,12 @@ export default async function AdminDashboard() {
     }
 
     if (session) {
-      const [{ data: tutor }, { data: student }] = await Promise.all([
-        supabaseClient
-          .from('profiles')
-          .select('email, full_name')
-          .eq('id', session.tutor_id)
-          .single(),
-        supabaseClient
-          .from('students')
-          .select('full_name')
-          .eq('id', session.student_id)
-          .single(),
-      ]);
+      const { data: tutor } = await supabaseClient
+        .from('profiles')
+        .select('email, full_name')
+        .eq('id', session.tutor_id)
+        .single();
 
-      const hrs =
-        Math.abs(
-          new Date(session.end_time).getTime() - new Date(session.start_time).getTime()
-        ) / 36e5;
       const payout = calcSessionPayout();
       const sessionDate = new Date(session.start_time).toLocaleDateString('en-NG', {
         weekday: 'long',
@@ -92,19 +86,17 @@ export default async function AdminDashboard() {
         year: 'numeric',
       });
 
-      const emailResult = await sendPaidSessionReceipt({
-        tutorEmail: tutor?.email ?? '',
-        tutorName: tutor?.full_name ?? 'Tutor',
-        sessionId: session.id,
-        subject: session.subject,
-        studentName: student?.full_name ?? '—',
-        sessionDate,
-        hours: hrs,
-        payoutAmountNgn: payout,
-      });
+      if (tutor?.email) {
+        const emailResult = await sendTutorReceipt(tutor.email, {
+          tutorName: tutor.full_name ?? 'Tutor',
+          amountPaid: payout,
+          date: sessionDate,
+          sessionCount: 1,
+        });
 
-      if (!emailResult.ok) {
-        console.error('[markAsPaid] receipt email failed:', emailResult.error);
+        if (!emailResult.ok) {
+          console.error('[markAsPaid] receipt email failed:', emailResult.error);
+        }
       }
     }
 
@@ -125,6 +117,7 @@ export default async function AdminDashboard() {
         <ProcessPayoutsButton
           unpaidCount={unpaidCount}
           outstandingLabel={formatNaira(totalPendingPayout)}
+          unpaidPayrollRows={unpaidPayrollRows}
         />
       </div>
 

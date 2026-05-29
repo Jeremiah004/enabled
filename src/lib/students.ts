@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 export type StudentOption = {
   id: string;
   full_name: string;
+  created_at?: string;
 };
 
 const STUDENTS_PAGE_SIZE = 1000;
@@ -21,7 +22,7 @@ export async function getAllStudents(
     const to = from + STUDENTS_PAGE_SIZE - 1;
     const { data, error, count } = await supabase
       .from('students')
-      .select('id, full_name', { count: 'exact' })
+      .select('id, full_name, created_at', { count: 'exact' })
       .order('full_name', { ascending: true })
       .range(from, to);
 
@@ -39,6 +40,7 @@ export async function getAllStudents(
       .map((s) => ({
         id: s.id as string,
         full_name: String(s.full_name ?? '').trim(),
+        created_at: s.created_at as string | undefined,
       }))
       .filter((s) => s.full_name.length > 0);
 
