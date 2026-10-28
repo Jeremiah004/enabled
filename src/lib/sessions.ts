@@ -3,7 +3,7 @@ export type SessionTimestampsResult =
   | { ok: false; error: string };
 
 /** Flat tutor payout per logged session (NGN), regardless of hours or subject. */
-export const FLAT_SESSION_PAYOUT_NGN = 3000;
+export const FLAT_SESSION_PAYOUT_NGN = 3500;
 
 /*Normalize to 24h "HH:MM" — accepts "09:00", "09:00:00", or "5:30 PM" */
 export function normalizeTimeInput(time: string): string | null {
